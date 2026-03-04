@@ -1,0 +1,91 @@
+{
+  "videos": [
+    {
+      "id": "InesGamboa",
+      "videoPath": "/assets/videos/InesGamboa.mp4",
+      "thumbnailPath": "/assets/thumbnails/InesGamboa.png",
+      "quiz": [
+        {
+          "text": "Sobre o que fala este vídeo?",
+          "options": ["Opção A", "Opção B", "Opção C", "Opção D"],
+          "correctIndex": 0
+        },
+        {
+          "text": "Qual a mensagem principal?",
+          "options": ["Uma", "Duas", "Três", "Quatro"],
+          "correctIndex": 1
+        },
+        {
+          "text": "Como classificarias o conteúdo?",
+          "options": ["Excelente", "Bom", "Razoável", "Fraco"],
+          "correctIndex": 0
+        }
+      ]
+    },
+    {
+      "id": "LuisBarbosa",
+      "videoPath": "/assets/videos/LuisBarbosa.mp4",
+      "thumbnailPath": "/assets/thumbnails/LuisBarbosa.png",
+      "quiz": [
+        {
+          "text": "O que aprendeste com este vídeo?",
+          "options": ["A", "B", "C", "D"],
+          "correctIndex": 0
+        },
+        {
+          "text": "Qual o tema central?",
+          "options": ["Tema 1", "Tema 2", "Tema 3", "Tema 4"],
+          "correctIndex": 2
+        }
+      ]
+    },
+    {
+      "id": "Untitled-1",
+      "videoPath": "/assets/videos/Untitled-1.mp4",
+      "thumbnailPath": "/assets/thumbnails/Untitled-1.png",
+      "quiz": [
+        {
+          "text": "Pergunta sobre este vídeo?",
+          "options": ["Sim", "Não", "Talvez", "Não sei"],
+          "correctIndex": 0
+        }
+      ]
+    },
+    {
+      "id": "Untitled-2",
+      "videoPath": "/assets/videos/Untitled-2.mp4",
+      "thumbnailPath": "/assets/thumbnails/Untitled-2.png",
+      "quiz": [
+        {
+          "text": "Pergunta Untitled-2?",
+          "options": ["Opção 1", "Opção 2", "Opção 3", "Opção 4"],
+          "correctIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "Untitled-3",
+      "videoPath": "/assets/videos/Untitled-3.mp4",
+      "thumbnailPath": "/assets/thumbnails/Untitled-3.png",
+      "quiz": [
+        {
+          "text": "Pergunta Untitled-3?",
+          "options": ["A", "B", "C", "D"],
+          "correctIndex": 2
+        }
+      ]
+    },
+    {
+      "id": "Untitled-4",
+      "videoPath": "/assets/videos/Untitled-4.mp4",
+      "thumbnailPath": "/assets/thumbnails/Untitled-4.png",
+      "quiz": [
+        {
+          "text": "Pergunta Untitled-4?",
+          "options": ["Verdadeiro", "Falso", "Ambos", "Nenhum"],
+          "correctIndex": 0
+        }
+      ]
+    }
+  ]
+}
