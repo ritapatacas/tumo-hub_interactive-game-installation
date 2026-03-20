@@ -23,7 +23,6 @@ export function createNoiseLevelWidget(container, opts = {}) {
 
   const label = document.createElement("div");
   label.className = "noise-level-label";
-  label.textContent = "Ruído";
 
   const outer = document.createElement("div");
   outer.className = "noise-level-outer";

@@ -4,8 +4,15 @@ import { getTeam } from "../../src/core/team.js";
 export let galleryScreen = new Screen("gallery");
 
 galleryScreen.setLayout({
-  align: { horizontal: "center", vertical: "top" },
+  align: { horizontal: "center", vertical: "center" },
+  marginTop: 80,
   gap: 14,
+});
+
+galleryScreen.setBackgroundImage({
+  filename: "bg-03.png",
+  size: "cover",
+  position: "center center",
 });
 
 galleryScreen.addGallery({

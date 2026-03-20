@@ -27,6 +27,27 @@ function textAlignFromHAlign(hAlign) {
   return "center";
 }
 
+/** Segmentos `**como isto**` viram <strong>; resto fica texto puro (sem HTML). */
+function appendTextWithBoldSegments(container, text, strongWeight) {
+  const s = text == null ? "" : String(text);
+  const re = /\*\*([\s\S]*?)\*\*/g;
+  let last = 0;
+  let m;
+  while ((m = re.exec(s)) !== null) {
+    if (m.index > last) {
+      container.appendChild(document.createTextNode(s.slice(last, m.index)));
+    }
+    const strong = document.createElement("strong");
+    strong.textContent = m[1];
+    if (strongWeight) strong.style.fontWeight = strongWeight;
+    container.appendChild(strong);
+    last = re.lastIndex;
+  }
+  if (last < s.length) {
+    container.appendChild(document.createTextNode(s.slice(last)));
+  }
+}
+
 export class UI {
   constructor({ mountEl, overlays, theme }) {
     this.mountEl = mountEl;
@@ -36,12 +57,14 @@ export class UI {
     this._actionRunner = null;
     this._inputs = new Map();
     this._noiseLevelDestroy = null;
+    this._countdownInterval = null;
+    this._countdownEl = null;
     this._teamScoreEl = null;
 
     this._screenEl = null;
     this._contentEl = null;
-    /** @type {HTMLElement[]} pilha de flex rows abertas; os add* acrescentam ao topo */
-    this._flexStack = [];
+    /** @type {HTMLElement[]} pilha de containers abertos (flex rows, shadow boxes, etc.); os add* acrescentam ao topo */
+    this._containerStack = [];
 
     this.applyTheme(theme);
   }
@@ -74,6 +97,7 @@ export class UI {
     }
 
     if (theme?.fontFamily) root.style.setProperty("--font", theme.fontFamily);
+    if (theme?.text?.titleSize) root.style.setProperty("--title-size", theme.text.titleSize);
 
     // Quiz: variáveis para customizar pergunta e opções (ids: quiz-question, quiz-option-0, …)
     const quiz = theme?.quiz;
@@ -103,13 +127,21 @@ export class UI {
       this._noiseLevelDestroy();
       this._noiseLevelDestroy = null;
     }
+    if (this._countdownInterval) {
+      clearInterval(this._countdownInterval);
+      this._countdownInterval = null;
+    }
+    if (this._countdownEl) {
+      this._countdownEl.remove();
+      this._countdownEl = null;
+    }
     if (this._teamScoreEl) {
       this._teamScoreEl.remove();
       this._teamScoreEl = null;
     }
     this._screenEl = null;
     this._contentEl = null;
-    this._flexStack = [];
+    this._containerStack = [];
     this.overlays.clear();
   }
 
@@ -166,6 +198,18 @@ export class UI {
     content.style.gap = `${layout.gap ?? 14}px`;
     content.style.alignItems = alignFromHAlign(hAlign);
     content.style.textAlign = textAlignFromHAlign(hAlign);
+    if (layout.marginTop != null) {
+      content.style.marginTop = typeof layout.marginTop === "number" ? layout.marginTop + "px" : String(layout.marginTop);
+    }
+    if (layout.marginBottom != null) {
+      content.style.marginBottom = typeof layout.marginBottom === "number" ? layout.marginBottom + "px" : String(layout.marginBottom);
+    }
+    if (layout.marginLeft != null) {
+      content.style.marginLeft = typeof layout.marginLeft === "number" ? layout.marginLeft + "px" : String(layout.marginLeft);
+    }
+    if (layout.marginRight != null) {
+      content.style.marginRight = typeof layout.marginRight === "number" ? layout.marginRight + "px" : String(layout.marginRight);
+    }
 
     screen.appendChild(content);
     this.overlays.root.appendChild(screen);
@@ -188,12 +232,21 @@ export class UI {
     if (!this._contentEl) {
       this.beginScreen();
     }
-    return this._flexStack.length > 0 ? this._flexStack[this._flexStack.length - 1] : this._contentEl;
+    return this._containerStack.length > 0
+      ? this._containerStack[this._containerStack.length - 1]
+      : this._contentEl;
   }
 
   /**
    * Abre uma flex row: os próximos add* (button, text, etc.) ficam lado a lado até endFlexRow().
-   * @param {{ gap?: number, justify?: "center" | "flex-start" | "flex-end" | "space-between", align?: "center" | "stretch" }} opts
+   * @param {{
+   *   gap?: number,
+   *   hGap?: number,
+   *   justify?: "center" | "flex-start" | "flex-end" | "space-between",
+   *   align?: "center" | "stretch"
+   * }} opts
+   *   gap – espaço vertical (e horizontal se `hGap` não for usado). Valor por omissão: 8.
+   *   hGap – espaço horizontal entre colunas (flex sections); quando definido, `gap` é só row-gap.
    */
   beginFlexRow(opts = {}) {
     const row = document.createElement("div");
@@ -201,32 +254,143 @@ export class UI {
     row.style.display = "flex";
     row.style.flexDirection = "row";
     row.style.flexWrap = "wrap";
-    row.style.gap = typeof opts.gap === "number" ? opts.gap + "px" : "8px";
+    const baseGap = typeof opts.gap === "number" ? opts.gap : 8;
+    if (typeof opts.hGap === "number") {
+      row.style.rowGap = baseGap + "px";
+      row.style.columnGap = opts.hGap + "px";
+    } else {
+      row.style.gap = baseGap + "px";
+    }
     row.style.justifyContent = opts.justify || "center";
     row.style.alignItems = opts.align || "center";
     this._ensureContent().appendChild(row);
-    this._flexStack.push(row);
+    this._containerStack.push(row);
   }
 
   /** Fecha a flex row aberta por beginFlexRow(). */
   endFlexRow() {
-    if (this._flexStack.length > 0) this._flexStack.pop();
+    if (this._containerStack.length > 0) this._containerStack.pop();
+  }
+
+  /**
+   * Coluna flexível para usar dentro de beginFlexRow(): empilha os próximos add* em
+   * vertical, com alinhamento horizontal left | center | right. Por omissão, dentro
+   * de uma row recebe flex 1 1 0% para formar colunas lado a lado (ex.: duas colunas).
+   * @param {{
+   *   align?: "left" | "center" | "right",
+   *   gap?: number,
+   *   flex?: number | string | false,
+   * }} opts
+   *   flex – false desativa o crescimento; string/number passa direto a CSS flex.
+   */
+  beginFlexSection(opts = {}) {
+    const parent = this._ensureContent();
+    const inFlexRow = parent.classList.contains("ui-flex-row");
+
+    const section = document.createElement("div");
+    section.className = "ui-flex-section";
+
+    const align = opts.align ?? "left";
+    section.style.display = "flex";
+    section.style.flexDirection = "column";
+    const gap =
+      typeof opts.gap === "number"
+        ? opts.gap + "px"
+        : this._contentEl
+          ? this._contentEl.style.gap || "14px"
+          : "14px";
+    section.style.gap = gap;
+    section.style.alignItems = alignFromHAlign(align);
+    section.style.textAlign = textAlignFromHAlign(align);
+
+    if (opts.flex === false) {
+      section.style.flex = "0 0 auto";
+    } else if (opts.flex != null && opts.flex !== true) {
+      section.style.flex = typeof opts.flex === "number" ? String(opts.flex) : opts.flex;
+    } else if (inFlexRow) {
+      section.style.flex = "1 1 0%";
+    }
+
+    if (inFlexRow || (opts.flex != null && opts.flex !== false)) {
+      section.style.minWidth = "0";
+    }
+
+    parent.appendChild(section);
+    this._containerStack.push(section);
+  }
+
+  /** Fecha a secção aberta por beginFlexSection(). */
+  endFlexSection() {
+    if (this._containerStack.length > 0) this._containerStack.pop();
+  }
+
+  /**
+   * Abre uma "shadow box": um card translúcido que agrupa vários elementos
+   * (texto, botões, imagens, etc.) para criar contraste com a imagem de fundo.
+   * Fechar com endShadowBox().
+   * @param {{ padding?: number | string, radius?: string, background?: string }} opts
+   */
+  beginShadowBox(opts = {}) {
+    const box = document.createElement("div");
+    box.className = "ui-shadow-box";
+
+    const themeRadius = this.theme?.radius?.md ?? "16px";
+    const padding = opts.padding ?? 20;
+    const radius = opts.radius ?? themeRadius;
+    const background = opts.background ?? "rgba(0, 0, 0, 0.28)";
+
+    box.style.display = "flex";
+    box.style.flexDirection = "column";
+    box.style.gap = this._contentEl ? this._contentEl.style.gap || "14px" : "14px";
+    box.style.padding = typeof padding === "number" ? padding + "px" : padding;
+    box.style.borderRadius = radius;
+    box.style.backgroundColor = background;
+    box.style.backdropFilter = "blur(1.5px)";
+    box.style.boxShadow = "0 50px 125px rgba(0, 0, 0, 0.40)";
+
+    this._ensureContent().appendChild(box);
+    this._containerStack.push(box);
+  }
+
+  /** Fecha a shadow box aberta por beginShadowBox(). */
+  endShadowBox() {
+    if (this._containerStack.length > 0) this._containerStack.pop();
   }
 
   // ---------- Components ----------
 
-  addText({ text, variant = "body" } = {}) {
+  /**
+   * @param {{
+   *   text?: string,
+   *   variant?: string,
+   *   align?: "top" | "bottom",
+   *   marginTop?: number | string,
+   *   marginBottom?: number | string,
+   *   marginLeft?: number | string,
+   *   marginRight?: number | string,
+   * }} opts
+   *   variant "title": texto sempre centrado na horizontal; `align` só afecta a vertical.
+   *   Usa `**texto**` para negrito (vários segmentos permitidos).
+   *   Quebras de linha: caracteres `\n` no string (ex. template literals com Enter).
+   */
+  addText({ text, variant = "body", align, marginTop, marginBottom, marginLeft, marginRight } = {}) {
     const el = document.createElement("div");
-    el.textContent = text ?? "";
+    el.style.whiteSpace = "pre-line";
 
     const sizes = this.theme?.text ?? {};
     const colors = this.theme?.colors ?? {};
 
-    if (variant === "title") {
-      el.style.fontSize = css(sizes.titleSize ?? "clamp(24px, 3vw, 42px)");
+    const isTitle = variant === "title";
+
+    if (isTitle) {
+      el.style.fontSize = "var(--title-size, 20px)";
+      el.style.fontFamily = css(sizes.titleFontFamily ?? "var(--font)");
       el.style.fontWeight = "700";
       el.style.letterSpacing = "-0.02em";
       el.style.color = css(colors.text ?? "var(--text)");
+      el.style.width = "100%";
+      el.style.textAlign = "center";
+      el.style.alignSelf = "stretch";
     } else if (variant === "muted") {
       el.style.fontSize = css(sizes.bodySize ?? "clamp(14px, 1.4vw, 18px)");
       el.style.color = css(colors.muted ?? "var(--muted)");
@@ -235,10 +399,58 @@ export class UI {
       el.style.color = css(colors.text ?? "var(--text)");
     }
 
+    if (align === "top") {
+      if (!isTitle) el.style.alignSelf = "flex-start";
+    } else if (align === "bottom") {
+      el.style.alignSelf = "stretch";
+      el.style.marginTop = "auto";
+    }
+
+    if (marginTop !== undefined) {
+      el.style.marginTop = typeof marginTop === "number" ? marginTop + "px" : marginTop;
+    }
+    if (marginBottom !== undefined) {
+      el.style.marginBottom = typeof marginBottom === "number" ? marginBottom + "px" : marginBottom;
+    }
+    if (marginLeft !== undefined) {
+      el.style.marginLeft = typeof marginLeft === "number" ? marginLeft + "px" : marginLeft;
+    }
+    if (marginRight !== undefined) {
+      el.style.marginRight = typeof marginRight === "number" ? marginRight + "px" : marginRight;
+    }
+
+    const strongWeight = isTitle ? "800" : "700";
+    appendTextWithBoldSegments(el, text ?? "", strongWeight);
+
     this._ensureContent().appendChild(el);
   }
 
-  addButton({ label, action, variant = "primary", ariaLabel, title, className } = {}) {
+  /**
+   * @param {{
+   *   label?: string,
+   *   action?: string,
+   *   variant?: string,
+   *   ariaLabel?: string,
+   *   title?: string,
+   *   className?: string,
+   *   vAlign?: "top" | "bottom",
+   *   hAlign?: "left" | "center" | "right",
+   *   marginTop?: number | string,
+   *   marginBottom?: number | string,
+   * }} opts
+   */
+  addButton({
+    label,
+    action,
+    variant = "primary",
+    ariaLabel,
+    title,
+    className,
+    vAlign,
+    hAlign,
+    marginTop,
+    marginBottom,
+  } = {}) {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.textContent = label ?? "Button";
@@ -247,6 +459,22 @@ export class UI {
     if (ariaLabel) btn.setAttribute("aria-label", ariaLabel);
     if (title) btn.title = title;
     btn.addEventListener("click", () => this.runAction(action));
+
+    if (vAlign === "top") {
+      btn.style.alignSelf = alignFromHAlign(hAlign ?? "left");
+    } else if (vAlign === "bottom") {
+      btn.style.alignSelf = alignFromHAlign(hAlign ?? "center");
+      btn.style.marginTop = "auto";
+    } else if (hAlign != null) {
+      btn.style.alignSelf = alignFromHAlign(hAlign);
+    }
+
+    if (marginTop !== undefined) {
+      btn.style.marginTop = typeof marginTop === "number" ? marginTop + "px" : marginTop;
+    }
+    if (marginBottom !== undefined) {
+      btn.style.marginBottom = typeof marginBottom === "number" ? marginBottom + "px" : marginBottom;
+    }
 
     this._ensureContent().appendChild(btn);
   }
@@ -501,23 +729,33 @@ export class UI {
     const points = state.teams?.[team] ?? 0;
     this.addTeamScore(team, points);
 
+    // Layout: quiz à esquerda e barra de ruído à direita.
+    // Usa beginFlexRow/beginFlexSection para manter o fluxo correto dos add*.
+    this.beginFlexRow({ gap: 14, justify: "center", align: "stretch" });
+    this.beginFlexSection({ align: "left", flex: 1 });
     this.addQuizForVideo({
       videoId: state.selectedVideoId ?? "",
       videosData: state.videosData ?? [],
       onAnswerAction: opts.onAnswerAction ?? "quizAnswered",
       optionsLayout: opts.optionsLayout ?? "list",
     });
+    this.endFlexSection();
 
+    this.beginFlexSection({ align: "center", flex: false });
+    this.addCountdownTimer({
+      seconds: opts.countdownSeconds ?? 10,
+      label: opts.countdownLabel ?? "Tempo",
+      onCompleteAction: opts.timeoutAction ?? "quizTimeout",
+    });
     this.addNoiseLevel({
       threshold: opts.threshold ?? 0.5,
       sensitivity: opts.sensitivity ?? 1,
       onExceedAction: opts.noiseAction ?? "noisePenalty",
     });
+    this.endFlexSection();
+    this.endFlexRow();
 
-    this.addButton({
-      label: opts.backLabel ?? "Voltar",
-      action: opts.backAction ?? "goGallery",
-    });
+    // Intencionalmente sem botão "Voltar" no ecrã de quiz.
   }
 
   /**
@@ -529,6 +767,7 @@ export class UI {
     if (this._teamScoreEl) this._teamScoreEl.remove();
     const el = document.createElement("div");
     el.className = "ui-team-score";
+    el.style.color = css(this.theme?.colors?.muted ?? "var(--muted)");
     const name = teamName?.trim() || "—";
     const pts = Number(points);
     el.textContent = `${name}: ${pts} pts`;
@@ -576,5 +815,58 @@ export class UI {
       },
     });
     this._noiseLevelDestroy = widget.destroy.bind(widget);
+  }
+
+  /**
+   * Timer simples (contagem regressiva) para colocar acima do noise level.
+   * @param {{ seconds?: number, label?: string, onCompleteAction?: string, showZero?: boolean }} opts
+   */
+  addCountdownTimer({ seconds = 30, label = "Tempo", onCompleteAction = "", showZero = true } = {}) {
+    // Clean any previous countdown instance.
+    if (this._countdownInterval) {
+      clearInterval(this._countdownInterval);
+      this._countdownInterval = null;
+    }
+    if (this._countdownEl) {
+      this._countdownEl.remove();
+      this._countdownEl = null;
+    }
+
+    const totalSeconds = Math.max(0, Math.floor(Number(seconds) || 0));
+    const el = document.createElement("div");
+    el.className = "ui-quiz-countdown";
+
+    const title = document.createElement("div");
+    title.className = "ui-quiz-countdown-label";
+    title.textContent = label;
+
+    const value = document.createElement("div");
+    value.className = "ui-quiz-countdown-value";
+    el.appendChild(title);
+    el.appendChild(value);
+
+    this._ensureContent().appendChild(el);
+
+    const endAt = Date.now() + totalSeconds * 1000;
+    let isCompleted = false;
+    const render = () => {
+      const remainingMs = endAt - Date.now();
+      const remaining = Math.max(0, Math.ceil(remainingMs / 1000));
+      const visibleRemaining = showZero ? remaining : Math.max(1, remaining);
+      value.textContent = String(visibleRemaining);
+      value.classList.toggle("is-danger", remaining <= 5);
+      if (remaining <= 0) {
+        if (this._countdownInterval) clearInterval(this._countdownInterval);
+        this._countdownInterval = null;
+        if (!isCompleted) {
+          isCompleted = true;
+          if (onCompleteAction) this.runAction(onCompleteAction);
+        }
+      }
+    };
+
+    this._countdownEl = el;
+    render();
+    this._countdownInterval = setInterval(render, 250);
   }
 }

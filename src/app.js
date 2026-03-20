@@ -57,6 +57,6 @@ export async function createApp(mountEl) {
 
   for (const screen of screens) sm.register(screen);
 
-  sm.goTo("template");
+  sm.goTo("home");
   window.addEventListener("resize", () => ui.onResize());
 }

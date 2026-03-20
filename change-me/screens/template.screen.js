@@ -8,19 +8,19 @@ templateScreen.setLayout({
   maxWidth: 720,
 });
 
-// --- Texto ---
-templateScreen.addText({ text: "Title", variant: "title" });
-templateScreen.addText({ text: "Text muted", variant: "muted" });
-templateScreen.addText({ text: "Text body.", variant: "body" });
-
-// --- Imagem ---
-templateScreen.addImage({ filename: "umdiadepastenavidadecopy.jpg", size: 20 });
-
+// --- Imagem de fundo ---
 templateScreen.setBackgroundImage({
-  filename: "umdiadepastenavidadecopy.jpg",
+  filename: "bg-01.png",
   size: "cover",
   position: "center center",
 });
+
+// --- Conteúdo principal dentro de uma shadow box ---
+templateScreen.addText({ text: "Title", variant: "title", shadow: true });
+templateScreen.beginShadowBox();
+templateScreen.addText({ text: "Text muted", variant: "muted" });
+templateScreen.addText({ text: "Text body.", variant: "body" });
+templateScreen.endShadowBox();
 
 // --- Navegação entre ecrãs ---
 templateScreen.addText({ text: "Botões de acesso aos ecrãs", variant: "muted" });

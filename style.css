@@ -1,6 +1,7 @@
 /* CSS variables are set from theme.js via UI.applyTheme(); fallbacks para não ficar tudo branco */
 :root {
   --font: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  --title-size: 50px;
   --bg: #e6e7eb;
   --text: #0b0f14;
 }
@@ -310,7 +311,7 @@ html, body {
   border-radius: 16px;
   border: 1px solid var(--border);
   background: var(--input-bg);
-  color: var(--text);
+  color: var(--muted);
   outline: none;
 }
 
@@ -341,13 +342,18 @@ html, body {
 
 /* Flex row: agrupar botões/elementos lado a lado (beginFlexRow / endFlexRow) */
 .ui-flex-row {
-  width: 100%;
-  margin: 4px 0;
+  width: 80%;
+  margin: 2px 0;
+}
+
+/* Coluna dentro de uma flex row (beginFlexSection / endFlexSection) */
+.ui-flex-section {
+  box-sizing: border-box;
 }
 
 /* Gallery */
 .gallery-grid {
-  width: min(960px, 92vw);
+  width: min(600px, 88vw);
   display: grid;
   gap: 12px;
   align-content: start;
@@ -355,48 +361,71 @@ html, body {
 
 .gallery-card {
   border: 1px solid var(--border);
-  background: var(--card);
+  background: var(--muted);
   border-radius: 16px;
   padding: 10px;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   gap: 10px;
   cursor: pointer;
-  text-align: left;
+  text-align: center;
   color: var(--text);
   overflow: hidden;
+  aspect-ratio: 1 / 1;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.gallery-card:hover,
+.gallery-card:focus-visible {
+  background: var(--text);
+  transform: translateY(-1px);
 }
 
 .gallery-thumb {
   display: block;
   width: 100%;
-  height: auto;
-  aspect-ratio: 16 / 9;
-  object-fit: contain;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
   border-radius: 12px;
   background: var(--thumb-bg);
 }
 
 .gallery-title {
   font-size: 14px;
-  opacity: 0.9;
+  color: var(--muted);
+  text-align: center;
+  width: 100%;
+}
+
+.gallery-card:hover .gallery-title,
+.gallery-card:focus-visible .gallery-title {
+  color: var(--bg);
 }
 
 /* Quiz – theme.quiz.gap: afterTitle, afterQuestion, betweenOptions */
 .quiz-card {
-  width: min(960px, 92vw);
+  width: min(380px, 44vw);
   margin-top: var(--quiz-gap-after-title, 16px);
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 1px;
   padding: 16px;
+  padding-bottom: 0px;
+}
+
+/* When quiz + noise are shown side-by-side */
+.ui-flex-row .quiz-card {
+  width: 80%;
+  margin-top: 0;
+  margin-left: 50px;
 }
 
 /* Pergunta: customizável em theme.quiz.question */
 .quiz-question,
 #quiz-question {
-  font-size: var(--quiz-question-font-size, 18px);
+  font-size: var(--quiz-question-font-size, var(--title-size, 20px));
   color: var(--quiz-question-color, var(--text));
+  font-weight: 800;
   margin-bottom: var(--quiz-gap-after-question, 12px);
 }
 
@@ -404,6 +433,7 @@ html, body {
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--quiz-gap-between-options, 10px);
+  
 }
 
 /* 2x2: use optionsLayout: "grid" em useDefaultQuiz */
@@ -416,10 +446,10 @@ html, body {
   display: flex;
   align-items: center;
   gap: 12px;
-  border: 1px solid var(--border);
+  border: 0.5px solid var(--option-bg);
   background: var(--option-bg);
   color: var(--text);
-  border-radius: 12px;
+  border-radius: 2px;
   padding: 10px 12px;
   cursor: pointer;
   text-align: left;
@@ -433,8 +463,8 @@ html, body {
 /* Círculo nas opções = variantes neumórficas (vermelho, branco, azul, amarelo) em tamanho reduzido */
 .quiz-option-dot {
   flex-shrink: 0;
-  width: 44px;
-  height: 44px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   border: 0;
   position: relative;
@@ -449,7 +479,7 @@ html, body {
   pointer-events: none;
 }
 .quiz-option-dot::after {
-  inset: 3px;
+  inset: 2.5px;
 }
 
 /* Opção 0: vermelho */
@@ -463,7 +493,7 @@ html, body {
   box-shadow:
     4px 4px 8px rgba(0, 0, 0, 0.25),
     6px 6px 14px rgba(0, 0, 0, 0.15),
-    -4px -4px 8px rgba(255, 255, 255, 0.90);
+    -4px -4px 8px rgba(40 40 40 / 0.9);
 }
 .quiz-option-0 .quiz-option-dot::before {
   background:
@@ -490,7 +520,7 @@ html, body {
   box-shadow:
     4px 4px 8px rgba(0, 0, 0, 0.22),
     5px 5px 12px rgba(0, 0, 0, 0.18),
-    -3px -3px 6px rgba(255, 255, 255, 0.95);
+    -4px -4px 8px rgba(40 40 40 / 0.9);
 }
 .quiz-option-1 .quiz-option-dot::before {
   background:
@@ -502,8 +532,8 @@ html, body {
 }
 .quiz-option-1 .quiz-option-dot::after {
   box-shadow:
-    inset 1px 1px 2px rgba(255, 255, 255, 0.5),
-    inset -1px -1px 2px rgba(0, 0, 0, 0.08);
+  -4px -4px 8px rgba(40 40 40 / 0.9);
+  inset -1px -1px 2px rgba(0, 0, 0, 0.08);
 }
 
 /* Opção 2: azul */
@@ -517,7 +547,7 @@ html, body {
   box-shadow:
     4px 4px 8px rgba(0, 0, 0, 0.28),
     6px 6px 14px rgba(0, 0, 0, 0.18),
-    -4px -4px 8px rgba(255, 255, 255, 0.85);
+    -4px -4px 8px rgba(40 40 40 / 0.9);
 }
 .quiz-option-2 .quiz-option-dot::before {
   background:
@@ -544,7 +574,7 @@ html, body {
   box-shadow:
     4px 4px 8px rgba(0, 0, 0, 0.28),
     6px 6px 14px rgba(0, 0, 0, 0.16),
-    -4px -4px 8px rgba(255, 255, 255, 0.75);
+    -4px -4px 8px rgba(40 40 40 / 0.9);
 }
 .quiz-option-3 .quiz-option-dot::before {
   background:
@@ -585,7 +615,9 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 0px;
+  flex: 1 1 auto;
+  min-height: 0; /* allow inner bar to shrink within flex layout */
 }
 
 .noise-level-label {
@@ -595,19 +627,45 @@ html, body {
 
 .noise-level-outer {
   width: 24px;
-  height: 120px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
+  height: 100%;
+  margin-top: 70px;
+  border-radius: 2px;
+  border: 1px solid var(--text);
   background: var(--sound-track-bg);
   overflow: hidden;
   display: flex;
   align-items: flex-end;
 }
 
+/* Quiz countdown */
+.ui-quiz-countdown {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 0px;
+}
+
+.ui-quiz-countdown-label {
+  font-size: 12px;
+  opacity: 0.9;
+  color: var(--muted);
+}
+
+.ui-quiz-countdown-value {
+  font-size: var(--title-size, 20px);
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+}
+
+.ui-quiz-countdown-value.is-danger {
+  color: var(--danger);
+}
+
 .noise-level-inner {
   width: 100%;
   height: 0%;
-  min-height: 2px;
+  min-height: 5px;
   background: var(--danger);
   transition: height 0.05s ease-out;
 }
@@ -652,7 +710,8 @@ html, body {
 
 /* Video */
 .video {
-  width: min(960px, 92vw);
+  width: min(820px, 88vw);
+  padding-top: 42px;
   height: auto;
   border-radius: 12px;
 }
@@ -662,8 +721,6 @@ html, body {
   display: inline-block;
   width: auto;
   max-width: min(720px, 92vw);
-  background: var(--card);
-  border: 1px solid var(--border);
   border-radius: 16px;
   padding: 16px;
 }
@@ -681,7 +738,7 @@ html, body {
   gap: 10px;
   padding: 6px 8px;
   border-radius: 10px;
-  background: rgba(0, 0, 0, 0.04);
+  background: rgba(0 0 0 / 0.21);
 }
 
 .leaderboard-rank {

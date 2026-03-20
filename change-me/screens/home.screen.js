@@ -4,7 +4,16 @@ export let homeScreen = new Screen("home");
 
 homeScreen.setLayout({ gap: 40 });
 
+
+homeScreen.setBackgroundImage({
+  filename: "bg-01.png",
+  size: "cover",
+  position: "center center",
+});
+
+homeScreen.beginShadowBox();
 homeScreen.addText({text: "Portfólio interativo: Game Dev", variant: "title"});
+homeScreen.endShadowBox();
 homeScreen.addText({text: "Escolhe um nome para a tua equipa", variant: "muted"});
 homeScreen.addInput({
   id: "teamName",

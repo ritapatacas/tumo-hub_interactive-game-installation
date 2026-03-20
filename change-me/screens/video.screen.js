@@ -8,8 +8,15 @@ videoScreen.setLayout({
   gap: 14,
 });
 
-
+videoScreen.setBackgroundImage({
+  filename: "bg-03.png",
+  size: "cover",
+  position: "center center",
+});
 
 videoScreen.onEnter((ctx) => {
   showSelectedVideo(ctx);
 });
+
+videoScreen.addButton({ label: "Voltar", action: "goGallery" });
+videoScreen.addButton({ label: "Quiz", action: "goQuiz" });

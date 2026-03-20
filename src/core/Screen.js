@@ -10,21 +10,75 @@ export class Screen {
       hAlign: "center", // left | center | right
       vAlign: "middle", // top | middle | bottom
       gap: 14,
-      maxWidth: 720,
+      maxWidth: 1080,
     };
   }
 
+  /**
+   * @param {{
+   *   hAlign?: "left" | "center" | "right",
+   *   vAlign?: "top" | "middle" | "bottom" | "center",
+   *   align?: { horizontal?: "left" | "center" | "right", vertical?: "top" | "middle" | "bottom" | "center" },
+   *   gap?: number,
+   *   maxWidth?: number | string,
+   *   marginTop?: number | string,
+   *   marginBottom?: number | string,
+   *   marginLeft?: number | string,
+   *   marginRight?: number | string,
+   * }} opts
+   */
   setLayout(opts = {}) {
     this._layout = { ...this._layout, ...opts };
     return this;
   }
 
-  // Visual/UI steps (no coordinates; flow/stack layout)
-  addText(opts) {
-    this._steps.push(({ ui }) => ui.addText(opts));
+  /**
+   * Texto simples. Se opts.shadow === true, o texto é automaticamente
+   * envolvido numa shadow box (beginShadowBox/endShadowBox).
+   * @param {{
+   *   text: string,
+   *   variant?: string,
+   *   shadow?: boolean,
+   *   align?: "top" | "bottom",
+   *   marginTop?: number | string,
+   *   marginBottom?: number | string,
+   *   marginLeft?: number | string,
+   *   marginRight?: number | string,
+   * }} opts
+   *   Com variant "title", o texto fica sempre centrado na horizontal; `align` é só vertical.
+   *   Negrito: rodeia com `**texto**` (pode repetir no mesmo string).
+   *   Novas linhas: usa `\n` no texto.
+   */
+  addText(opts = {}) {
+    if (opts.shadow) {
+      const { shadow, ...rest } = opts;
+      this._steps.push(({ ui }) => {
+        ui.beginShadowBox();
+        ui.addText(rest);
+        ui.endShadowBox();
+      });
+    } else {
+      this._steps.push(({ ui }) => ui.addText(opts));
+    }
     return this;
   }
 
+  /**
+   * @param {{
+   *   label?: string,
+   *   action?: string,
+   *   variant?: string,
+   *   ariaLabel?: string,
+   *   title?: string,
+   *   className?: string,
+   *   vAlign?: "top" | "bottom",
+   *   hAlign?: "left" | "center" | "right",
+   *   marginTop?: number | string,
+   *   marginBottom?: number | string,
+   * }} opts
+   *   `vAlign`: `top` ou `bottom` (`bottom` usa `margin-top: auto`). Largura ao conteúdo.
+   *   `hAlign`: horizontal no eixo cruzado da column flex; omissão: `left` com `top`, `center` com `bottom`.
+   */
   addButton(opts) {
     this._steps.push(({ ui }) => ui.addButton(opts));
     return this;
@@ -45,7 +99,12 @@ export class Screen {
   /**
    * Agrupa os próximos elementos (botões, texto, etc.) numa flex row – ficam lado a lado.
    * Fechar com endFlexRow().
-   * @param {{ gap?: number, justify?: "center" | "flex-start" | "flex-end" | "space-between", align?: "center" | "stretch" }} opts
+   * @param {{
+   *   gap?: number,
+   *   hGap?: number,
+   *   justify?: "center" | "flex-start" | "flex-end" | "space-between",
+   *   align?: "center" | "stretch",
+   * }} opts
    */
   beginFlexRow(opts = {}) {
     this._steps.push(({ ui }) => ui.beginFlexRow(opts));
@@ -55,6 +114,44 @@ export class Screen {
   /** Fecha a flex row aberta por beginFlexRow(). */
   endFlexRow() {
     this._steps.push(({ ui }) => ui.endFlexRow());
+    return this;
+  }
+
+  /**
+   * Coluna dentro de uma flex row: empilha elementos em vertical com alinhamento
+   * à esquerda, centro ou direita. Útil para duas (ou mais) colunas lado a lado.
+   * @param {{
+   *   align?: "left" | "center" | "right",
+   *   gap?: number,
+   *   flex?: number | string | false,
+   * }} opts
+   */
+  beginFlexSection(opts = {}) {
+    this._steps.push(({ ui }) => ui.beginFlexSection(opts));
+    return this;
+  }
+
+  /** Fecha a secção aberta por beginFlexSection(). */
+  endFlexSection() {
+    this._steps.push(({ ui }) => ui.endFlexSection());
+    return this;
+  }
+
+  /**
+   * Agrupa os próximos elementos num "shadow box": um card translúcido que
+   * cria contraste com a imagem de fundo. Fechar com endShadowBox().
+   * Tudo o que for adicionado entre beginShadowBox() e endShadowBox() fica
+   * dentro da mesma caixa.
+   * @param {{ padding?: number | string, radius?: string, background?: string }} opts
+   */
+  beginShadowBox(opts = {}) {
+    this._steps.push(({ ui }) => ui.beginShadowBox(opts));
+    return this;
+  }
+
+  /** Fecha a shadow box aberta por beginShadowBox(). */
+  endShadowBox() {
+    this._steps.push(({ ui }) => ui.endShadowBox());
     return this;
   }
 
@@ -102,6 +199,15 @@ export class Screen {
 
   addLeaderboard(opts) {
     this._steps.push(({ ui }) => ui.addLeaderboard(opts));
+    return this;
+  }
+
+  /**
+   * Leaderboard com equipas obtidas do state (útil para ordem correta dos elementos).
+   * getTeams(state) deve devolver um array de { name, points }.
+   */
+  addLeaderboardFromState(getTeams) {
+    this._steps.push(({ ui, state }) => ui.addLeaderboard({ teams: getTeams(state) }));
     return this;
   }
 

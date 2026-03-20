@@ -1,9 +1,9 @@
 const colors = {
   // Base neutra clara (para Soft UI / Neumorphism)
   bg: "#e6e7eb",
-  text: "#0b0f14",
+  text: "#C1BBE1",
   muted: "rgba(11, 15, 20, 0.62)",
-  surface: "rgba(255, 255, 255, 0.58)",
+  surface: "#FFFFFF94",
   border: "rgba(11, 15, 20, 0.10)",
   primary: "rgba(11, 15, 20, 0.06)",
   danger: "#c22926",       /* red: background de elementos danger */
@@ -12,7 +12,7 @@ const colors = {
   thumbBg: "rgba(11, 15, 20, 0.04)",
   optionBg: "rgba(255, 255, 255, 0.60)",
   soundTrackBg: "rgba(11, 15, 20, 0.06)",
-  quizzOptionsBg: "rgba(255, 255, 255, 0.55)",
+  quizzOptionsBg: "0xFFFFFF8C",
   red: "#c22926",
   white: "#fcfdf6",
   blue: "#0854ac",
@@ -22,8 +22,9 @@ const colors = {
 export const theme = {
   colors,
   text: {
-    titleSize: "clamp(24px, 3vw, 42px)",
+    titleSize: "50px",
     bodySize: "clamp(14px, 1.4vw, 18px)",
+    titleFontFamily: "'Jersey 15', system-ui, sans-serif",
   },
   radius: {
     md: "16px",
@@ -46,7 +47,7 @@ export const theme = {
     aspect: {
       optionsBg: colors.quizzOptionsBg,
       afterTitle: "16px",    // entre o título do ecrã ("Quiz") e o card da pergunta
-      afterQuestion: "18px", // entre o texto da pergunta e a lista de opções
+      afterQuestion: "42px", // entre o texto da pergunta e a lista de opções
       betweenOptions: "10px", // entre cada opção (botões)
     },
   },

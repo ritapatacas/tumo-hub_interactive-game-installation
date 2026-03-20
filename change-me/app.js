@@ -3,11 +3,12 @@ import { persistStateTeam, applyNoisePenalty, showNoisePenalty } from "../src/co
 import { selectVideoFromPayload } from "../src/core/video.js";
 import { serial } from "../src/serial.js";
 import { onQuizAnswered } from "./screens/quiz.screen.js";
-import { templateScreen } from "./screens/template.screen.js";
 import { homeScreen } from "./screens/home.screen.js";
 import { galleryScreen } from "./screens/gallery.screen.js";
 import { quizScreen } from "./screens/quiz.screen.js";
+import { quietScreen } from "./screens/quiet.screen.js";
 import { videoScreen } from "./screens/video.screen.js";
+import { attentionScreen } from "./screens/attention.screen.js";
 import { leaderboardScreen } from "./screens/leaderboard.screen.js";
 import { tutorialScreen } from "./screens/tutorial.screen.js";
 
@@ -17,21 +18,32 @@ export const POINTS_PER_CORRECT = 10;
 export const POINTS_NOISE_PENALTY = 5;
 
 export const screens = [
-  templateScreen,
   homeScreen,
   tutorialScreen,
   galleryScreen,
+  quietScreen,
   quizScreen,
+  attentionScreen,
   videoScreen,
   leaderboardScreen,
 ];
 
 export const actions = {
-  goTemplate: ({ goTo }) => goTo("template"),
   goHome: ({ goTo }) => goTo("home"),
   goTutorial: ({ goTo }) => goTo("tutorial"),
   goGallery: ({ goTo }) => goTo("gallery"),
-  goQuiz: ({ goTo }) => goTo("quiz"),
+  goQuiz: (ctx) => {
+    // Mostra ecrã intermédio "quiet" durante 5s antes do quiz.
+    if (ctx.state.__quietTimerId) {
+      clearTimeout(ctx.state.__quietTimerId);
+    }
+    ctx.goTo("quiet");
+    ctx.state.__quietTimerId = setTimeout(() => {
+      ctx.goTo("quiz");
+      ctx.state.__quietTimerId = null;
+    }, 10000);
+  },
+  goQuizNow: ({ goTo }) => goTo("quiz"),
   goVideo: ({ goTo }) => goTo("video"),
   goLeaderboard: ({ goTo }) => goTo("leaderboard"),
 
@@ -61,6 +73,12 @@ export const actions = {
     ctx.goTo("gallery");
   },
 
+  // Timeout do quiz: sem resposta até ao fim => sai com 0 pontos neste round.
+  quizTimeout: (ctx) => {
+    ctx.ui.showMessage("Tempo esgotado. 0 pontos.", { type: "error" });
+    ctx.goTo("gallery");
+  },
+
   noisePenalty: (ctx) => {
     const penalty = POINTS_NOISE_PENALTY;
     const team = applyNoisePenalty(ctx, penalty);
@@ -69,7 +87,15 @@ export const actions = {
 
   openVideoFromGallery: (ctx) => {
     selectVideoFromPayload(ctx);
-    ctx.goTo("video");
+    // Mostra ecrã intermédio "attention" durante 5s antes do vídeo.
+    if (ctx.state.__attentionTimerId) {
+      clearTimeout(ctx.state.__attentionTimerId);
+    }
+    ctx.goTo("attention");
+    ctx.state.__attentionTimerId = setTimeout(() => {
+      ctx.goTo("video");
+      ctx.state.__attentionTimerId = null;
+    }, 5000);
   },
 
   /** Exemplo no template: mostra toast ao responder ao quiz estático. */

@@ -3,43 +3,47 @@ import { answerIsCorrect, recordAnswer, addTeamPoints } from "../../src/core/poi
 
 export let quizScreen = new Screen("quiz");
 
-quizScreen.addText({ text: "Quiz", variant: "title" });
+
+quizScreen.setBackgroundImage({
+  filename: "bg-03.png",
+  size: "cover",
+  position: "center bottom",
+});
 
 quizScreen.useDefaultQuiz({
   onAnswerAction: "quizAnswered",
   noiseAction: "noisePenalty",
   backAction: "goGallery",
   backLabel: "Voltar",
-  sensitivity: 1,
+  sensitivity: 2,
   // Apresentação das opções: "list" (vertical) ou "grid" (2x2)
-  optionsLayout: "grid",
+  optionsLayout: "list",
 });
 
 export function onQuizAnswered(ctx) {
   const info = recordAnswer(ctx);
   let isRight = answerIsCorrect(info.answer);
 
-  let history = {
-    hadWrongBefore: recordAnswer(ctx).hadWrongBefore,
-    attemptsTotal: recordAnswer(ctx).attemptsTotal,
-    wrongAnswerTotal: recordAnswer(ctx).wrongAnswerTotal,
-  }
-
   let msg;
   let roundPoints;
 
   if (isRight) {
-    roundPoints;
-
-    if (history.hadWrongBefore) {
+    roundPoints = 10;
+    if (info.hadWrongBefore) {
+      roundPoints -= 2;
+      msg = "Correto! +" + roundPoints + " pontos (tinhas errado antes).";
+    } else {
+      msg = "Correto! +" + roundPoints + " pontos.";
     }
-    
   } else {
-
-    if (history.hadWrongBefore) {
+    roundPoints = -1;
+    if (info.hadWrongBefore) {
+      msg = "Resposta errada novamente. -1 ponto.";
+    } else {
+      msg = "Resposta errada. -1 ponto.";
     }
   }
 
   addTeamPoints(ctx, roundPoints);
-  ctx.ui.showMessage(msg, { type: "error" });
+  ctx.ui.showMessage(msg, { type: isRight ? "success" : "error" });
 }
