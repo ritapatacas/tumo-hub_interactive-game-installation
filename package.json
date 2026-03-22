@@ -5,10 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "sync": "node server/sync-server.mjs",
     "build": "vite build",
     "preview": "vite preview"
   },
   "devDependencies": {
     "vite": "^5.0.0"
+  },
+  "dependencies": {
+    "ws": "^8.18.3"
   }
 }

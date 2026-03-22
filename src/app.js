@@ -2,11 +2,65 @@ import { ScreenManager } from "./core/ScreenManager.js";
 import { UI } from "./core/ui.js";
 import { createOverlays } from "./core/domOverlays.js";
 import { serial } from "./serial.js";
+import { SessionSync } from "./core/sessionSync.js";
 
 // Student configuration (screens + actions + flow)
 import { theme, actions, screens } from "../change-me/app.js";
 
 const TEAMS_STORAGE_KEY = "tumo_hub_teams";
+const SHARED_SCREENS = new Set(["home", "tutorial", "preGallery", "attention", "quiet", "leaderboard"]);
+const ROLE_ONLY = {
+  video: "p1",
+  quiz: "p2",
+};
+
+function resolveVisibleScreen(globalScreen, role) {
+  if (SHARED_SCREENS.has(globalScreen)) {
+    return { name: globalScreen, payload: null };
+  }
+  if (globalScreen === "gallery") {
+    return { name: role === "p1" ? "gallery" : "blind-gallery", payload: null };
+  }
+  const allowedRole = ROLE_ONLY[globalScreen];
+  if (!allowedRole || allowedRole === role) {
+    return { name: globalScreen, payload: null };
+  }
+  if (globalScreen === "video" && role === "p2") {
+    return { name: "attention", payload: { p2VideoListen: true } };
+  }
+  if (globalScreen === "quiz" && role === "p1") {
+    return {
+      name: "waiting",
+      payload: { message: "O Player 2 está a responder ao quiz." },
+    };
+  }
+  return { name: "waiting", payload: { message: "A sessão está a avançar no outro ecrã." } };
+}
+
+function extractSharedState(state) {
+  return {
+    teamName: state.teamName || "",
+    teams: state.teams ?? {},
+    selectedVideoSrc: state.selectedVideoSrc || "",
+    selectedVideoQuiz: state.selectedVideoQuiz ?? null,
+    selectedVideoId: state.selectedVideoId || "",
+    gallerySeed: typeof state.gallerySeed === "number" ? state.gallerySeed : 0,
+    galleryEpoch: typeof state.galleryEpoch === "number" ? state.galleryEpoch : 0,
+  };
+}
+
+function applySharedState(state, shared) {
+  if (!shared || typeof shared !== "object") return;
+  if (typeof shared.teamName === "string") state.teamName = shared.teamName;
+  if (shared.teams && typeof shared.teams === "object") state.teams = shared.teams;
+  if (typeof shared.selectedVideoSrc === "string") state.selectedVideoSrc = shared.selectedVideoSrc;
+  if (Object.prototype.hasOwnProperty.call(shared, "selectedVideoQuiz")) {
+    state.selectedVideoQuiz = shared.selectedVideoQuiz;
+  }
+  if (typeof shared.selectedVideoId === "string") state.selectedVideoId = shared.selectedVideoId;
+  if (typeof shared.gallerySeed === "number") state.gallerySeed = shared.gallerySeed;
+  if (typeof shared.galleryEpoch === "number") state.galleryEpoch = shared.galleryEpoch;
+}
 
 function loadTeamsFromStorage() {
   try {
@@ -19,7 +73,9 @@ function loadTeamsFromStorage() {
   }
 }
 
-export async function createApp(mountEl) {
+export async function createApp(mountEl, sessionConfig) {
+  const role = sessionConfig?.role === "p1" ? "p1" : "p2";
+  const isController = role === "p2";
   const state = {
     teamName: "",
     teams: loadTeamsFromStorage(),
@@ -48,15 +104,74 @@ export async function createApp(mountEl) {
 
   const overlays = createOverlays(mountEl);
   const ui = new UI({ mountEl, overlays, theme });
-  const sm = new ScreenManager({ ui, actions, state, teamsStorageKey: TEAMS_STORAGE_KEY });
+  const sync = new SessionSync({
+    role,
+    sessionId: sessionConfig?.sessionId || "default",
+    wsUrl: sessionConfig?.wsUrl,
+  });
+
+  let currentGlobalScreen = "attention";
+  let currentGlobalPayload = null;
+  const renderGlobal = (screenName, payload) => {
+    currentGlobalScreen = screenName;
+    currentGlobalPayload = payload ?? null;
+    const visible = resolveVisibleScreen(screenName, role);
+    const finalPayload = visible.payload ?? currentGlobalPayload;
+    return sm.goTo(visible.name, finalPayload, { fromSync: true });
+  };
+
+  const sm = new ScreenManager({
+    ui,
+    actions,
+    state,
+    teamsStorageKey: TEAMS_STORAGE_KEY,
+    canRunAction: (actionName) => isController || actionName === "videoEndedAdvance",
+    onNavigateRequest: async ({ name, payload, meta, perform }) => {
+      if (meta?.fromSync) {
+        return perform(name, payload);
+      }
+      if (!isController) {
+        return null;
+      }
+      currentGlobalScreen = name;
+      currentGlobalPayload = payload ?? null;
+      sync.publishScreen({
+        screen: currentGlobalScreen,
+        payload: currentGlobalPayload,
+        sharedState: extractSharedState(state),
+      });
+      return renderGlobal(currentGlobalScreen, currentGlobalPayload);
+    },
+  });
 
   // Serial: cada botão (red, blue, yellow, white) mapeia para opção do quiz (0–3)
-  if (serial.isSupported()) {
+  if (isController && serial.isSupported()) {
     serial.onButtonPress((optionIndex) => ui.simulateQuizOptionClick(optionIndex));
   }
 
   for (const screen of screens) sm.register(screen);
 
-  sm.goTo("home");
+  document.body.dataset.role = role;
+  document.body.dataset.connection = "disconnected";
+
+  sync.onConnection(({ connected }) => {
+    document.body.dataset.connection = connected ? "connected" : "disconnected";
+  });
+
+  sync.onState((msg) => {
+    applySharedState(state, msg.sharedState);
+    renderGlobal(msg.screen || "attention", msg.payload ?? null);
+  });
+
+  sync.connect();
+  if (isController) {
+    sync.publishScreen({
+      screen: currentGlobalScreen,
+      payload: currentGlobalPayload,
+      sharedState: extractSharedState(state),
+    });
+  }
+
+  renderGlobal("attention", null);
   window.addEventListener("resize", () => ui.onResize());
 }

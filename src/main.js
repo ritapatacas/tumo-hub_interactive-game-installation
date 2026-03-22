@@ -1,7 +1,9 @@
 import { createApp } from "./app.js";
+import { getSessionConfigFromUrl } from "./core/sessionSync.js";
 
 const appEl = document.getElementById("app");
-createApp(appEl).catch((err) => {
+const sessionConfig = getSessionConfigFromUrl();
+createApp(appEl, sessionConfig).catch((err) => {
   console.error(err);
   appEl.innerHTML = `<div style="padding: 24px; font-family: system-ui; color: #0b0f14;">
     <p><strong>Erro ao carregar a aplicação</strong></p>

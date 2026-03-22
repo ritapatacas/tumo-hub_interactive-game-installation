@@ -15,8 +15,5 @@ videoScreen.setBackgroundImage({
 });
 
 videoScreen.onEnter((ctx) => {
-  showSelectedVideo(ctx);
+  showSelectedVideo(ctx, { onEndedAction: "videoEndedAdvance" });
 });
-
-videoScreen.addButton({ label: "Voltar", action: "goGallery" });
-videoScreen.addButton({ label: "Quiz", action: "goQuiz" });

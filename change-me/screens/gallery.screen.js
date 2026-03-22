@@ -3,11 +3,7 @@ import { getTeam } from "../../src/core/team.js";
 
 export let galleryScreen = new Screen("gallery");
 
-galleryScreen.setLayout({
-  align: { horizontal: "center", vertical: "center" },
-  marginTop: 80,
-  gap: 14,
-});
+galleryScreen.setLayout({ gap: 0, vAlign: "top", variant: "display" });
 
 galleryScreen.setBackgroundImage({
   filename: "bg-03.png",
@@ -15,15 +11,11 @@ galleryScreen.setBackgroundImage({
   position: "center center",
 });
 
-galleryScreen.addGallery({
+/** P1: thumbnails, destaque aleatório a cada segundo (sem escolher). */
+galleryScreen.addSpotlightGallery({
   columns: 3,
-  onSelectAction: "openVideoFromGallery",
+  variant: "thumbnails",
 });
-galleryScreen.beginFlexRow({ gap: 12 });
-galleryScreen.addButton({ label: "Ligar Arduino", action: "connectArduino" });
-galleryScreen.addButton({ label: "Quiz", action: "goQuiz" });
-galleryScreen.addButton({ label: "Voltar", action: "goHome" });
-galleryScreen.endFlexRow();
 
 galleryScreen.onEnter(({ ui, state }) => {
   const team = getTeam(state);

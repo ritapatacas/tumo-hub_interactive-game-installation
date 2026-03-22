@@ -1,4 +1,5 @@
 import { resolveGalleryItems } from "./gallery.js";
+import { spotlightIndexForTick } from "./gallerySpotlight.js";
 import { createNoiseLevelWidget } from "./noiseLevel.js";
 
 function css(v) {
@@ -27,10 +28,10 @@ function textAlignFromHAlign(hAlign) {
   return "center";
 }
 
-/** Segmentos `**como isto**` viram <strong>; resto fica texto puro (sem HTML). */
+/** `***isto***` → <strong> sublinhado; `**isto**` → <strong>; resto texto puro. */
 function appendTextWithBoldSegments(container, text, strongWeight) {
   const s = text == null ? "" : String(text);
-  const re = /\*\*([\s\S]*?)\*\*/g;
+  const re = /\*\*\*([\s\S]*?)\*\*\*|\*\*([\s\S]*?)\*\*/g;
   let last = 0;
   let m;
   while ((m = re.exec(s)) !== null) {
@@ -38,8 +39,10 @@ function appendTextWithBoldSegments(container, text, strongWeight) {
       container.appendChild(document.createTextNode(s.slice(last, m.index)));
     }
     const strong = document.createElement("strong");
-    strong.textContent = m[1];
+    const inner = m[1] != null ? m[1] : m[2];
+    strong.textContent = inner;
     if (strongWeight) strong.style.fontWeight = strongWeight;
+    if (m[1] != null) strong.style.textDecoration = "underline";
     container.appendChild(strong);
     last = re.lastIndex;
   }
@@ -60,6 +63,9 @@ export class UI {
     this._countdownInterval = null;
     this._countdownEl = null;
     this._teamScoreEl = null;
+    this._playerRoleBadgeEl = null;
+    this._cornerHintBadgeEl = null;
+    this._gallerySpotlightInterval = null;
 
     this._screenEl = null;
     this._contentEl = null;
@@ -139,6 +145,18 @@ export class UI {
       this._teamScoreEl.remove();
       this._teamScoreEl = null;
     }
+    if (this._playerRoleBadgeEl) {
+      this._playerRoleBadgeEl.remove();
+      this._playerRoleBadgeEl = null;
+    }
+    if (this._cornerHintBadgeEl) {
+      this._cornerHintBadgeEl.remove();
+      this._cornerHintBadgeEl = null;
+    }
+    if (this._gallerySpotlightInterval) {
+      clearInterval(this._gallerySpotlightInterval);
+      this._gallerySpotlightInterval = null;
+    }
     this._screenEl = null;
     this._contentEl = null;
     this._containerStack = [];
@@ -182,20 +200,23 @@ export class UI {
     const screen = document.createElement("div");
     screen.className = "screen";
 
+    const gapRaw = layout.gap ?? 14;
+    const gapCss = typeof gapRaw === "number" ? `${gapRaw}px` : String(gapRaw);
+
     screen.style.display = "flex";
     screen.style.flexDirection = "column";
     screen.style.justifyContent = justifyFromVAlign(vAlign);
     screen.style.alignItems = alignFromHAlign(hAlign);
-    screen.style.gap = `${layout.gap ?? 14}px`;
+    screen.style.gap = gapCss;
 
     const content = document.createElement("div");
-    content.className = "screen-content";
+    content.className = "screen-content" + (layout.variant ? ` screen-content--${layout.variant}` : "");
     const maxWidth = layout.maxWidth ?? 720;
     content.style.width = "min(92vw, 100%)";
     content.style.maxWidth = typeof maxWidth === "number" ? `${maxWidth}px` : `${maxWidth}`;
     content.style.display = "flex";
     content.style.flexDirection = "column";
-    content.style.gap = `${layout.gap ?? 14}px`;
+    content.style.gap = gapCss;
     content.style.alignItems = alignFromHAlign(hAlign);
     content.style.textAlign = textAlignFromHAlign(hAlign);
     if (layout.marginTop != null) {
@@ -211,11 +232,59 @@ export class UI {
       content.style.marginRight = typeof layout.marginRight === "number" ? layout.marginRight + "px" : String(layout.marginRight);
     }
 
+    if (layout.variant === "display") {
+      // Topo na vertical: elementos estáveis quando o countdown (ou outros blocos) aparece/desaparece
+      screen.style.justifyContent = "flex-start";
+      screen.style.alignItems = "center";
+      const mw = layout.maxWidth;
+      const widthStr =
+        mw === undefined || mw === null ? "35vw" : typeof mw === "number" ? `${mw}px` : String(mw);
+      content.style.width = widthStr;
+      content.style.maxWidth = widthStr;
+      const mh = layout.maxContentHeight;
+      const heightStr =
+        mh === undefined || mh === null ? "50vh" : typeof mh === "number" ? `${mh}px` : String(mh);
+      content.style.height = heightStr;
+      content.style.maxHeight = heightStr;
+      content.style.overflowY = "auto";
+      content.style.boxSizing = "border-box";
+    }
+
     screen.appendChild(content);
     this.overlays.root.appendChild(screen);
 
     this._screenEl = screen;
     this._contentEl = content;
+
+    const role = document.body.dataset.role === "p1" ? "p1" : "p2";
+    const badge = document.createElement("div");
+    badge.className = "ui-player-role-badge";
+    badge.textContent = role === "p1" ? "Player 1" : "Player 2";
+    badge.setAttribute("aria-label", badge.textContent);
+    document.body.appendChild(badge);
+    this._playerRoleBadgeEl = badge;
+  }
+
+  /**
+   * Texto fixo no canto inferior direito (ex.: “press any button…”). Só em ecrãs que chamem isto.
+   * Quebras de linha: `\n` no `text` (CSS `white-space: pre-line` na classe).
+   * @param {{ text?: string, ariaLabel?: string }} opts — sem `text` ou string vazia: remove o badge.
+   */
+  setCornerHint({ text, ariaLabel } = {}) {
+    if (this._cornerHintBadgeEl) {
+      this._cornerHintBadgeEl.remove();
+      this._cornerHintBadgeEl = null;
+    }
+    const t = text == null ? "" : String(text).trim();
+    if (!t) return;
+
+    const el = document.createElement("div");
+    el.className = "ui-corner-hint-badge";
+    el.textContent = t;
+    el.setAttribute("aria-live", "polite");
+    el.setAttribute("aria-label", ariaLabel ?? t);
+    document.body.appendChild(el);
+    this._cornerHintBadgeEl = el;
   }
 
   onResize() {
@@ -278,10 +347,13 @@ export class UI {
    * de uma row recebe flex 1 1 0% para formar colunas lado a lado (ex.: duas colunas).
    * @param {{
    *   align?: "left" | "center" | "right",
+   *   justify?: "flex-start" | "center" | "flex-end" | "space-between",
+   *   paddingRight?: number | string,
    *   gap?: number,
    *   flex?: number | string | false,
    * }} opts
    *   flex – false desativa o crescimento; string/number passa direto a CSS flex.
+   *   justify – eixo principal da coluna (vertical): p.ex. center para centrar o bloco na altura da célula (com row align stretch).
    */
   beginFlexSection(opts = {}) {
     const parent = this._ensureContent();
@@ -293,6 +365,7 @@ export class UI {
     const align = opts.align ?? "left";
     section.style.display = "flex";
     section.style.flexDirection = "column";
+    section.style.justifyContent = opts.justify ?? "flex-start";
     const gap =
       typeof opts.gap === "number"
         ? opts.gap + "px"
@@ -315,6 +388,11 @@ export class UI {
       section.style.minWidth = "0";
     }
 
+    if (opts.paddingRight !== undefined) {
+      section.style.paddingRight =
+        typeof opts.paddingRight === "number" ? opts.paddingRight + "px" : String(opts.paddingRight);
+    }
+
     parent.appendChild(section);
     this._containerStack.push(section);
   }
@@ -328,7 +406,7 @@ export class UI {
    * Abre uma "shadow box": um card translúcido que agrupa vários elementos
    * (texto, botões, imagens, etc.) para criar contraste com a imagem de fundo.
    * Fechar com endShadowBox().
-   * @param {{ padding?: number | string, radius?: string, background?: string }} opts
+   * @param {{ padding?: number | string, radius?: string, background?: string, marginTop?: number | string, marginBottom?: number | string }} opts
    */
   beginShadowBox(opts = {}) {
     const box = document.createElement("div");
@@ -343,6 +421,12 @@ export class UI {
     box.style.flexDirection = "column";
     box.style.gap = this._contentEl ? this._contentEl.style.gap || "14px" : "14px";
     box.style.padding = typeof padding === "number" ? padding + "px" : padding;
+    if (opts.marginTop !== undefined) {
+      box.style.marginTop = typeof opts.marginTop === "number" ? opts.marginTop + "px" : String(opts.marginTop);
+    }
+    if (opts.marginBottom !== undefined) {
+      box.style.marginBottom = typeof opts.marginBottom === "number" ? opts.marginBottom + "px" : String(opts.marginBottom);
+    }
     box.style.borderRadius = radius;
     box.style.backgroundColor = background;
     box.style.backdropFilter = "blur(1.5px)";
@@ -368,14 +452,45 @@ export class UI {
    *   marginBottom?: number | string,
    *   marginLeft?: number | string,
    *   marginRight?: number | string,
+   *   fontSize?: number | string,
+   *   paragraphGap?: number | string,
+   *   color?: string,
    * }} opts
    *   variant "title": texto sempre centrado na horizontal; `align` só afecta a vertical.
-   *   Usa `**texto**` para negrito (vários segmentos permitidos).
+   *   variant "body" (omissão): Jersey 15 por omissão (`theme.text.bodyFontFamily`).
+   *   variant "foreground": tamanho/line-height como "body", cor `var(--ink)`, `font-family: var(--font-sans)` (stack em style.css; não é sobrescrita por applyTheme).
+   *   variant "hand": como "foreground", com `font-family: var(--font-hand)` (Geo em style.css / Google Fonts).
+   *   `fontSize`: opcional; sobrescreve o tamanho definido pela variant (número em px, ou string CSS).
+   *   `color`: opcional; sobrescreve a cor da variant (ex. `var(--ink)` como em foreground/hand).
+   *   `paragraphGap`: opcional; separa o texto em parágrafos por `\n\n` (ou mais newlines) e aplica `margin-bottom` *entre* blocos; `\n` simples continua só a quebrar linha dentro do parágrafo.
+   *   Negrito: `**texto**`; negrito + sublinhado: `***texto***`.
    *   Quebras de linha: caracteres `\n` no string (ex. template literals com Enter).
    */
-  addText({ text, variant = "body", align, marginTop, marginBottom, marginLeft, marginRight } = {}) {
+  addText({
+    text,
+    variant = "body",
+    align,
+    marginTop,
+    marginBottom,
+    marginLeft,
+    marginRight,
+    fontSize,
+    paragraphGap,
+    color,
+  } = {}) {
+    const raw = text ?? "";
+    const useParagraphs = paragraphGap !== undefined;
+    const paragraphs = useParagraphs
+      ? raw
+          .split(/\n\n+/)
+          .map((p) => p.trim())
+          .filter((p) => p.length > 0)
+      : null;
+
     const el = document.createElement("div");
-    el.style.whiteSpace = "pre-line";
+    if (!useParagraphs) {
+      el.style.whiteSpace = "pre-line";
+    }
 
     const sizes = this.theme?.text ?? {};
     const colors = this.theme?.colors ?? {};
@@ -392,11 +507,37 @@ export class UI {
       el.style.textAlign = "center";
       el.style.alignSelf = "stretch";
     } else if (variant === "muted") {
-      el.style.fontSize = css(sizes.bodySize ?? "clamp(14px, 1.4vw, 18px)");
+      el.style.fontSize = css(sizes.bodySize ?? "clamp(19px, 2.15vw, 30px)");
+      el.style.fontFamily = css(sizes.bodyFontFamily ?? "'Jersey 15', system-ui, sans-serif");
+      el.style.fontWeight = "400";
+      el.style.lineHeight = "1.45";
       el.style.color = css(colors.muted ?? "var(--muted)");
+    } else if (variant === "foreground") {
+      el.style.fontSize = css(sizes.bodySize ?? "clamp(19px, 2.15vw, 30px)");
+      el.style.fontFamily = "var(--font-sans)";
+      el.style.fontWeight = "400";
+      el.style.lineHeight = "1.45";
+      el.style.color = "var(--ink)";
+    } else if (variant === "hand") {
+      el.style.fontSize = css(sizes.bodySize ?? "clamp(19px, 2.15vw, 30px)");
+      el.style.fontFamily = "var(--font-hand)";
+      el.style.fontWeight = "400";
+      el.style.lineHeight = "1.45";
+      el.style.color = "var(--ink)";
     } else {
-      el.style.fontSize = css(sizes.bodySize ?? "clamp(14px, 1.4vw, 18px)");
+      el.style.fontSize = css(sizes.bodySize ?? "clamp(19px, 2.15vw, 30px)");
+      el.style.fontFamily = css(sizes.bodyFontFamily ?? "'Jersey 15', system-ui, sans-serif");
+      el.style.fontWeight = "400";
+      el.style.lineHeight = "1.45";
       el.style.color = css(colors.text ?? "var(--text)");
+    }
+
+    if (color !== undefined) {
+      el.style.color = css(color);
+    }
+
+    if (fontSize !== undefined) {
+      el.style.fontSize = typeof fontSize === "number" ? `${fontSize}px` : css(fontSize);
     }
 
     if (align === "top") {
@@ -420,7 +561,26 @@ export class UI {
     }
 
     const strongWeight = isTitle ? "800" : "700";
-    appendTextWithBoldSegments(el, text ?? "", strongWeight);
+    const paraGap =
+      useParagraphs &&
+      (typeof paragraphGap === "number" ? `${paragraphGap}px` : css(paragraphGap));
+    if (useParagraphs) {
+      paragraphs.forEach((para, i) => {
+        const block = document.createElement("div");
+        block.style.whiteSpace = "pre-line";
+        if (isTitle) {
+          block.style.width = "100%";
+          block.style.textAlign = "center";
+        }
+        if (i < paragraphs.length - 1) {
+          block.style.marginBottom = paraGap;
+        }
+        appendTextWithBoldSegments(block, para, strongWeight);
+        el.appendChild(block);
+      });
+    } else {
+      appendTextWithBoldSegments(el, raw, strongWeight);
+    }
 
     this._ensureContent().appendChild(el);
   }
@@ -481,33 +641,76 @@ export class UI {
 
   /**
    * Insere uma imagem. Ficheiro em assets/images. size em % e alinhamento.
-   * @param {{ filename: string, size?: number, align?: "center" | "left" | "right" }} opts
+   * @param {{ filename: string, size?: number, align?: "center" | "left" | "right", slotAspectRatio?: string, objectFit?: "contain" | "cover", marginLeft?: number | string, marginRight?: number | string, marginTop?: number | string, marginBottom?: number | string }} opts
+   *   `slotAspectRatio` (ex. `"1 / 1"`): caixa com proporção fixa para trocar `filename` sem saltar o layout; a imagem encaixa com `object-fit`.
+   *   Margens opcionais no contentor (útil p.ex. `marginRight` com `align: "right"` para afastar da borda).
    */
-  addImage({ filename, size = 100, align = "center" } = {}) {
+  addImage({
+    filename,
+    size = 100,
+    align = "center",
+    slotAspectRatio,
+    objectFit = "contain",
+    marginLeft,
+    marginRight,
+    marginTop,
+    marginBottom,
+  } = {}) {
     if (!filename) return;
 
     const wrap = document.createElement("div");
     wrap.className = "ui-image-wrap ui-image-wrap--" + (align === "left" ? "left" : align === "right" ? "right" : "center");
+    if (slotAspectRatio) wrap.classList.add("ui-image-wrap--slot");
 
     const img = document.createElement("img");
     img.alt = filename;
     img.src = "/assets/images/" + filename;
     img.className = "ui-image";
-    img.style.width = typeof size === "number" ? size + "%" : "100%";
-    img.style.maxWidth = "100%";
-    img.style.height = "auto";
-    img.style.display = "block";
+    if (slotAspectRatio) {
+      wrap.style.width = typeof size === "number" ? size + "%" : "100%";
+      wrap.style.maxWidth = "100%";
+      wrap.style.aspectRatio = slotAspectRatio;
+      wrap.style.flexShrink = "0";
+      img.style.width = "100%";
+      img.style.height = "100%";
+      img.style.objectFit = objectFit;
+      img.style.display = "block";
+    } else {
+      img.style.width = typeof size === "number" ? size + "%" : "100%";
+      img.style.maxWidth = "100%";
+      img.style.height = "auto";
+      img.style.display = "block";
+    }
 
     wrap.appendChild(img);
+
+    const setMargin = (v, prop) => {
+      if (v === undefined) return;
+      wrap.style[prop] = typeof v === "number" ? `${v}px` : String(v);
+    };
+    setMargin(marginLeft, "marginLeft");
+    setMargin(marginRight, "marginRight");
+    setMargin(marginTop, "marginTop");
+    setMargin(marginBottom, "marginBottom");
+
     this._ensureContent().appendChild(wrap);
   }
 
-  addInput({ id, placeholder = "", actionOnEnter } = {}) {
+  /**
+   * @param {{ id?: string, placeholder?: string, actionOnEnter?: string, maxWidth?: number | string, align?: "stretch" | "center" | "left" | "right" }} opts
+   *   `align` no eixo da shadow box / coluna: centra o campo quando é mais estreito que o contentor.
+   */
+  addInput({ id, placeholder = "", actionOnEnter, maxWidth, align = "stretch" } = {}) {
     const input = document.createElement("input");
     input.type = "text";
     input.placeholder = placeholder;
 
     input.className = "input";
+    if (maxWidth != null) input.style.maxWidth = typeof maxWidth === "number" ? `${maxWidth}px` : String(maxWidth);
+    if (align === "center") input.style.alignSelf = "center";
+    else if (align === "left") input.style.alignSelf = "flex-start";
+    else if (align === "right") input.style.alignSelf = "flex-end";
+    else input.style.alignSelf = "stretch";
 
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter") this.runAction(actionOnEnter);
@@ -521,41 +724,127 @@ export class UI {
     return this._inputs.get(id)?.value ?? "";
   }
 
-  async addGallery({ columns = 3, items, onSelectAction = "" } = {}) {
+  async addGallery({
+    columns = 3,
+    items,
+    onSelectAction = "",
+    showThumbnails = true,
+    interactive = onSelectAction !== "",
+  } = {}) {
     let resolved = resolveGalleryItems(items);
     const grid = document.createElement("div");
     grid.className = "gallery-grid";
-    grid.style.gridTemplateColumns = `repeat(${Math.max(1, columns)}, 1fr)`;
+    grid.style.gridTemplateColumns = `repeat(${Math.max(1, columns)}, minmax(0, 1fr))`;
 
     for (const it of resolved) {
-      const card = document.createElement("button");
-      card.type = "button";
-      card.className = "gallery-card";
+      const card = document.createElement(interactive ? "button" : "div");
+      if (interactive) card.type = "button";
+      card.className = `gallery-card ${interactive ? "gallery-card--interactive" : "gallery-card--passive"} ${showThumbnails ? "" : "gallery-card--blind"}`.trim();
 
-      const img = document.createElement("img");
-      img.alt = it.name ?? "thumbnail";
-      // Prefer explicit thumbnail URL; fall back to /assets/thumbnails/<name>.png
-      if (it.thumbnail && typeof it.thumbnail === "string" && it.thumbnail.length > 0) {
-        img.src = it.thumbnail;
-      } else if (it.name) {
-        img.src = `/assets/thumbnails/${it.name}.png`;
-      } else {
-        img.src = "";
+      if (showThumbnails) {
+        const img = document.createElement("img");
+        img.alt = it.name ?? "thumbnail";
+        // Prefer explicit thumbnail URL; fall back to /assets/thumbnails/<name>.png
+        if (it.thumbnail && typeof it.thumbnail === "string" && it.thumbnail.length > 0) {
+          img.src = it.thumbnail;
+        } else if (it.name) {
+          img.src = `/assets/thumbnails/${it.name}.png`;
+        } else {
+          img.src = "";
+        }
+        img.className = "gallery-thumb";
+        card.appendChild(img);
       }
-      img.className = "gallery-thumb";
 
       const title = document.createElement("div");
       title.textContent = it.name ?? "";
       title.className = "gallery-title";
 
-      card.addEventListener("click", () => this.runAction(onSelectAction, it));
+      if (interactive) {
+        card.addEventListener("click", () => this.runAction(onSelectAction, it));
+      }
 
-      card.appendChild(img);
       card.appendChild(title);
       grid.appendChild(card);
     }
 
     this._ensureContent().appendChild(grid);
+  }
+
+  /**
+   * Galeria com vídeo em destaque aleatório, mudando a cada segundo (sincronizado entre P1/P2
+   * via `state.gallerySeed` + `state.galleryEpoch`, definidos ao entrar na galeria).
+   * @param {{ columns?: number, items?: any[], variant?: "thumbnails" | "blind", state: object }} opts
+   */
+  addSpotlightGallery({ columns = 3, items, variant = "thumbnails", state } = {}) {
+    if (!state) return;
+
+    const resolved = resolveGalleryItems(items);
+    if (this._gallerySpotlightInterval) {
+      clearInterval(this._gallerySpotlightInterval);
+      this._gallerySpotlightInterval = null;
+    }
+
+    const grid = document.createElement("div");
+    grid.className = "gallery-grid gallery-grid--spotlight";
+    grid.style.gridTemplateColumns = `repeat(${Math.max(1, columns)}, minmax(0, 1fr))`;
+
+    const cards = [];
+    for (let i = 0; i < resolved.length; i++) {
+      const it = resolved[i];
+      const card = document.createElement("div");
+      const base =
+        variant === "blind"
+          ? "gallery-card gallery-card--passive gallery-card--blind gallery-card--spotlight-cell"
+          : "gallery-card gallery-card--passive gallery-card--spotlight-cell";
+      card.className = base;
+      card.dataset.index = String(i);
+
+      if (variant === "thumbnails") {
+        const img = document.createElement("img");
+        img.alt = it.name ?? "thumbnail";
+        if (it.thumbnail && typeof it.thumbnail === "string" && it.thumbnail.length > 0) {
+          img.src = it.thumbnail;
+        } else if (it.name) {
+          img.src = `/assets/thumbnails/${it.name}.png`;
+        } else {
+          img.src = "";
+        }
+        img.className = "gallery-thumb";
+        card.appendChild(img);
+      }
+
+      grid.appendChild(card);
+      cards.push(card);
+    }
+
+    this._ensureContent().appendChild(grid);
+
+    let lastTick = -1;
+
+    const applyTick = () => {
+      const epoch = Number(state.galleryEpoch) || 0;
+      const seed = Number(state.gallerySeed) || 0;
+      const len = resolved.length;
+      if (!epoch || len === 0) {
+        cards.forEach((el) => el.classList.remove("gallery-card--spotlight"));
+        return;
+      }
+
+      const tick = Math.floor((Date.now() - epoch) / 400);
+      if (tick === lastTick) return;
+      lastTick = tick;
+
+      const idx = spotlightIndexForTick(seed, tick, len);
+      state.gallerySpotlightIndex = idx;
+
+      cards.forEach((el, i) => {
+        el.classList.toggle("gallery-card--spotlight", i === idx);
+      });
+    };
+
+    applyTick();
+    this._gallerySpotlightInterval = setInterval(applyTick, 120);
   }
 
   /**
@@ -636,9 +925,7 @@ export class UI {
     const videosData = opts.videosData ?? [];
     let videoId = opts.videoId ?? "";
     let video = videoId ? videosData.find((v) => v.id === videoId) : null;
-    if (!video && videosData.length > 0) {
-      video = videosData[Math.floor(Math.random() * videosData.length)];
-    }
+    if (!video) return;
     const questions = video?.quiz ?? [];
     const q =
       questions.length > 0
@@ -762,14 +1049,46 @@ export class UI {
    * Mostra no canto superior direito a pontuação da equipa atual (floating, não interfere no layout).
    * @param {string} teamName
    * @param {number} points
+   * @param {{ toolbarButtons?: Array<{ label?: string, action?: string, variant?: string }> }} [opts]
    */
-  addTeamScore(teamName, points) {
+  addTeamScore(teamName, points, opts = {}) {
     if (this._teamScoreEl) this._teamScoreEl.remove();
+    const name = teamName?.trim() || "—";
+    const pts = Number(points);
+    const toolbarButtons = opts.toolbarButtons;
+
+    if (toolbarButtons && toolbarButtons.length > 0) {
+      const stack = document.createElement("div");
+      stack.className = "ui-team-score-stack";
+
+      const scoreEl = document.createElement("div");
+      scoreEl.className = "ui-team-score";
+      scoreEl.style.color = css(this.theme?.colors?.muted ?? "var(--muted)");
+      scoreEl.textContent = `${name}: ${pts} pts`;
+      stack.appendChild(scoreEl);
+
+      const toolbar = document.createElement("div");
+      toolbar.className = "ui-team-score-toolbar";
+      for (const b of toolbarButtons) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = b.label ?? "Button";
+        const variant = b.variant ?? "primary";
+        btn.className = `btn btn-${variant}`;
+        const action = b.action;
+        btn.addEventListener("click", () => this.runAction(action));
+        toolbar.appendChild(btn);
+      }
+      stack.appendChild(toolbar);
+
+      document.body.appendChild(stack);
+      this._teamScoreEl = stack;
+      return;
+    }
+
     const el = document.createElement("div");
     el.className = "ui-team-score";
     el.style.color = css(this.theme?.colors?.muted ?? "var(--muted)");
-    const name = teamName?.trim() || "—";
-    const pts = Number(points);
     el.textContent = `${name}: ${pts} pts`;
     document.body.appendChild(el);
     this._teamScoreEl = el;
@@ -819,9 +1138,16 @@ export class UI {
 
   /**
    * Timer simples (contagem regressiva) para colocar acima do noise level.
-   * @param {{ seconds?: number, label?: string, onCompleteAction?: string, showZero?: boolean }} opts
+   * @param {{ seconds?: number, label?: string, onCompleteAction?: string, showZero?: boolean, dangerAlways?: boolean }} opts
+   *   dangerAlways – se true, o número usa sempre a cor de alerta (p.ex. contadores longos alinhados ao ecrã attention).
    */
-  addCountdownTimer({ seconds = 30, label = "Tempo", onCompleteAction = "", showZero = true } = {}) {
+  addCountdownTimer({
+    seconds = 30,
+    label = "Tempo",
+    onCompleteAction = "",
+    showZero = true,
+    dangerAlways = false,
+  } = {}) {
     // Clean any previous countdown instance.
     if (this._countdownInterval) {
       clearInterval(this._countdownInterval);
@@ -854,7 +1180,7 @@ export class UI {
       const remaining = Math.max(0, Math.ceil(remainingMs / 1000));
       const visibleRemaining = showZero ? remaining : Math.max(1, remaining);
       value.textContent = String(visibleRemaining);
-      value.classList.toggle("is-danger", remaining <= 5);
+      value.classList.toggle("is-danger", dangerAlways || remaining <= 5);
       if (remaining <= 0) {
         if (this._countdownInterval) clearInterval(this._countdownInterval);
         this._countdownInterval = null;

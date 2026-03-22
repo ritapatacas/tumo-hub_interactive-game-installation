@@ -34,15 +34,17 @@ export function selectVideoFromPayload(ctx) {
   };
 }
 
-export function showSelectedVideo(ctx) {
+export function showSelectedVideo(ctx, opts = {}) {
   const state = ctx.state;
   const ui = ctx.ui;
+  const onEndedAction = opts.onEndedAction || "";
 
   if (state.selectedVideoSrc) {
     ui.addVideo({
       src: state.selectedVideoSrc,
       autoplay: true,
       controls: false,
+      onEndedAction,
     });
   }
 }

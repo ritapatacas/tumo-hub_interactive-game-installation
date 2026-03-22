@@ -70,32 +70,18 @@ export function getDefaultGalleryItems() {
       import: "default",
     });
 
-    let thumbs = import.meta.glob("../../assets/thumbnails/*.{png,jpg,jpeg,webp}", {
-      eager: true,
-      query: "?url",
-      import: "default",
-    });
-
-    let thumbByBase = {};
-    for (let path in thumbs) {
-      let u = toUrl(thumbs[path]);
-      if (u) thumbByBase[baseName(path)] = u;
-    }
-
+    // Thumbnails via URL estática: glob eager em .png pedia o ficheiro como módulo ES e chocava com o middleware /assets (MIME image/png).
     let items = [];
     for (let path in videos) {
       let src = toUrl(videos[path]);
       if (!src) continue;
 
       let name = baseName(path);
-      let thumb = "";
-      if (thumbByBase[name]) thumb = thumbByBase[name];
-
       items.push({
         type: "video",
         name: name,
         src: src,
-        thumbnail: thumb,
+        thumbnail: `/assets/thumbnails/${name}.png`,
       });
     }
 

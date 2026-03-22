@@ -1,13 +1,18 @@
 export class ScreenManager {
-  constructor({ ui, actions, state, teamsStorageKey = "tumo_hub_teams" }) {
+  constructor({ ui, actions, state, teamsStorageKey = "tumo_hub_teams", onNavigateRequest, canRunAction }) {
     this.ui = ui;
     this.actions = actions;
     this.state = state;
     this._teamsStorageKey = teamsStorageKey;
     this._screens = new Map();
     this._current = null;
+    this._onNavigateRequest = typeof onNavigateRequest === "function" ? onNavigateRequest : null;
+    this._canRunAction = typeof canRunAction === "function" ? canRunAction : null;
 
     this.ui.setActionRunner((actionName, payload) => {
+      if (this._canRunAction && !this._canRunAction(actionName, payload)) {
+        return;
+      }
       const fn = this.actions[actionName];
       if (!fn) {
         console.warn(`Unknown action: ${actionName}`);
@@ -21,7 +26,7 @@ export class ScreenManager {
         }
       };
       fn({
-        goTo: (name, p) => this.goTo(name, p),
+        goTo: (name, p) => this.goTo(name, p, { source: "action" }),
         ui: this.ui,
         state: this.state,
         payload,
@@ -35,7 +40,7 @@ export class ScreenManager {
     this._screens.set(screen.name, screen);
   }
 
-  async goTo(name, payload) {
+  async _performGoTo(name, payload) {
     const next = this._screens.get(name);
     if (!next) throw new Error(`Screen not found: ${name}`);
 
@@ -49,6 +54,18 @@ export class ScreenManager {
     if (this._current) await this._current.unmount(ctx);
     this._current = next;
     await this._current.mount(ctx);
+  }
+
+  async goTo(name, payload, meta = {}) {
+    if (this._onNavigateRequest) {
+      return this._onNavigateRequest({
+        name,
+        payload,
+        meta,
+        perform: (targetName, targetPayload) => this._performGoTo(targetName, targetPayload),
+      });
+    }
+    return this._performGoTo(name, payload);
   }
 
   draw(p) {

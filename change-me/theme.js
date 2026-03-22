@@ -22,20 +22,23 @@ const colors = {
 export const theme = {
   colors,
   text: {
-    titleSize: "50px",
-    bodySize: "clamp(14px, 1.4vw, 18px)",
+    titleSize: "80px",
+    bodySize: "clamp(24px, 3.15vw, 30px)",
+    /** Jersey 15 — Sarah Cadigan-Fried (Google Fonts) */
     titleFontFamily: "'Jersey 15', system-ui, sans-serif",
+    bodyFontFamily: "'Jersey 15', system-ui, sans-serif",
   },
   radius: {
     md: "16px",
   },
-  fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
+  /** Corpo da app (inputs, botões via var(--font)) — Jersey 15 */
+  fontFamily: "'Jersey 15', system-ui, sans-serif",
 
   // Quiz: aparência da pergunta e de cada opção (ids: quiz-question, quiz-option-0, ...)
   quiz: {
     question: {
       color: colors.text,
-      fontSize: "18px",
+      fontSize: "22px",
     },
     options: [
       { color: colors.red },

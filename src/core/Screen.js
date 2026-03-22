@@ -16,19 +16,36 @@ export class Screen {
 
   /**
    * @param {{
+   *   variant?: "display",
    *   hAlign?: "left" | "center" | "right",
    *   vAlign?: "top" | "middle" | "bottom" | "center",
    *   align?: { horizontal?: "left" | "center" | "right", vertical?: "top" | "middle" | "bottom" | "center" },
    *   gap?: number,
    *   maxWidth?: number | string,
+   *   maxContentHeight?: number | string,
    *   marginTop?: number | string,
    *   marginBottom?: number | string,
    *   marginLeft?: number | string,
    *   marginRight?: number | string,
    * }} opts
+   *   `variant: "display"` — `screen-content`: por omissão **60vw** / **60vh** (ajustável com `maxWidth` / `maxContentHeight`), **marginTop** `20vh`; centrado na horizontal, alinhado ao topo na vertical (evita saltos quando o countdown some).
    */
   setLayout(opts = {}) {
     this._layout = { ...this._layout, ...opts };
+    if (this._layout.variant === "display") {
+      if (opts.maxWidth === undefined) this._layout.maxWidth = "60vw";
+      if (opts.maxContentHeight === undefined) this._layout.maxContentHeight = "60vh";
+      if (opts.marginTop === undefined) this._layout.marginTop = "20vh";
+    }
+    return this;
+  }
+
+  /**
+   * Dica no canto inferior direito do ecrã (fixa ao viewport). Omitir `text` ou usar string vazia para não mostrar.
+   * @param {{ text?: string, ariaLabel?: string }} opts
+   */
+  setCornerHint(opts = {}) {
+    this._steps.push(({ ui }) => ui.setCornerHint(opts));
     return this;
   }
 
@@ -44,9 +61,18 @@ export class Screen {
    *   marginBottom?: number | string,
    *   marginLeft?: number | string,
    *   marginRight?: number | string,
+   *   fontSize?: number | string,
+   *   paragraphGap?: number | string,
+   *   color?: string,
    * }} opts
    *   Com variant "title", o texto fica sempre centrado na horizontal; `align` é só vertical.
-   *   Negrito: rodeia com `**texto**` (pode repetir no mesmo string).
+   *   Variant "body" (omissão): Jersey 15 (`theme.text.bodyFontFamily`).
+   *   Variant "foreground": cor `var(--ink)`, fonte `var(--font-sans)` (style.css).
+   *   Variant "hand": cor `var(--ink)`, fonte Geo (`var(--font-hand)`).
+   *   `fontSize`: opcional; sobrescreve o tamanho da variant (número = px, ou valor CSS).
+   *   `color`: opcional; sobrescreve a cor (ex. `var(--ink)`).
+   *   `paragraphGap`: opcional; separadores de parágrafo são `\n\n` (ver `ui.addText`).
+   *   Negrito: `**texto**`; negrito + sublinhado: `***texto***` (pode repetir no mesmo string).
    *   Novas linhas: usa `\n` no texto.
    */
   addText(opts = {}) {
@@ -86,10 +112,12 @@ export class Screen {
 
   /**
    * Insere uma imagem a partir de assets/images.
-   * @param {{ filename: string, size?: number, align?: "center" | "left" | "right" }} opts
+   * @param {{ filename: string, size?: number, align?: "center" | "left" | "right", slotAspectRatio?: string, objectFit?: "contain" | "cover", marginLeft?: number | string, marginRight?: number | string, marginTop?: number | string, marginBottom?: number | string }} opts
    *   filename – nome do ficheiro em assets/images (ex: "logo.png")
    *   size – largura em % do container (ex: 50)
    *   align – alinhamento: "center" (default), "left" ou "right"
+   *   slotAspectRatio – ex. `"1 / 1"` para área fixa ao trocar imagem
+   *   margin* – opcional; número = px, string = valor CSS (ex. `"2vw"`)
    */
   addImage(opts = {}) {
     this._steps.push(({ ui }) => ui.addImage(opts));
@@ -122,6 +150,8 @@ export class Screen {
    * à esquerda, centro ou direita. Útil para duas (ou mais) colunas lado a lado.
    * @param {{
    *   align?: "left" | "center" | "right",
+   *   justify?: "flex-start" | "center" | "flex-end" | "space-between",
+   *   paddingRight?: number | string,
    *   gap?: number,
    *   flex?: number | string | false,
    * }} opts
@@ -142,7 +172,7 @@ export class Screen {
    * cria contraste com a imagem de fundo. Fechar com endShadowBox().
    * Tudo o que for adicionado entre beginShadowBox() e endShadowBox() fica
    * dentro da mesma caixa.
-   * @param {{ padding?: number | string, radius?: string, background?: string }} opts
+   * @param {{ padding?: number | string, radius?: string, background?: string, marginTop?: number | string, marginBottom?: number | string }} opts
    */
   beginShadowBox(opts = {}) {
     this._steps.push(({ ui }) => ui.beginShadowBox(opts));
@@ -155,6 +185,7 @@ export class Screen {
     return this;
   }
 
+  /** @param {{ id?: string, placeholder?: string, actionOnEnter?: string, maxWidth?: number | string, align?: "stretch" | "center" | "left" | "right" }} opts */
   addInput(opts) {
     this._steps.push(({ ui }) => ui.addInput(opts));
     return this;
@@ -166,6 +197,20 @@ export class Screen {
       ui.addGallery({
         ...opts,
         items: opts.items && opts.items.length > 0 ? opts.items : state.videosData ?? [],
+      })
+    );
+    return this;
+  }
+
+  /**
+   * Galeria com destaque aleatório sincronizado (variant: "thumbnails" | "blind").
+   */
+  addSpotlightGallery(opts = {}) {
+    this._steps.push(({ ui, state }) =>
+      ui.addSpotlightGallery({
+        ...opts,
+        items: opts.items && opts.items.length > 0 ? opts.items : state.videosData ?? [],
+        state,
       })
     );
     return this;
@@ -227,6 +272,14 @@ export class Screen {
    */
   useDefaultQuiz(opts = {}) {
     this._steps.push(({ ui, state }) => ui.setupDefaultQuizScreen(state, opts));
+    return this;
+  }
+
+  /**
+   * Passo extra no mount: `fn(ctx)` com ctx = { ui, state, goTo, payload }.
+   */
+  addMountStep(fn) {
+    this._steps.push(fn);
     return this;
   }
 

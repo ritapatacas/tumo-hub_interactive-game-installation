@@ -18,36 +18,40 @@ quietScreen.beginFlexRow({
     align: "center",
 });
 
-quietScreen.beginFlexSection({ align: "right", gap: 1 });
-quietScreen.addText({text: 
-    "**Players 1 e 2**:\nJá não vão poder falar!",
-    variant: "body",
-    marginLeft: 60,
-    marginRight: -20,
-});
-quietScreen.addText({text: 
-    "Se forem apanhados serão descontados pontos!",
-    variant: "body",
-    marginLeft: 60,
-    marginRight: -20,
-});
+
+
+quietScreen.beginFlexSection({ align: "left", gap: 0 });
+quietScreen.addImage({ filename: "quiet.png", size: 40 });
 quietScreen.endFlexSection();
 
 quietScreen.beginFlexSection({ align: "left", gap: 0 });
-quietScreen.addImage({ filename: "quiet.png", size: 60 });
-quietScreen.endFlexSection();
 
-quietScreen.beginFlexSection({ align: "left", gap: 0 });
-quietScreen.addText({text: 
-    "**Player 2**: a vitória está nas tuas mãos!\nTens 10 segundos para responder à pergunta.",
-    variant: "body",
-    marginRight: 50,
-    marginLeft: -20,
-    marginTop: 20,
+quietScreen.addMountStep(({ ui }) => {
+  const isP1 = document.body.dataset.role === "p1";
+  if (isP1) {
+    ui.addText({
+      text: "Já não vão poder falar!\nSe forem apanhados serão descontados pontos!",
+      variant: "body",
+      marginLeft: -20,
+      marginRight: 50,
+    });
+  } else {
+    ui.addText({
+      text: "Já não vão poder falar!\nSe forem apanhados serão descontados pontos!\n\nTens 10 segundos para responder à pergunta.",
+      variant: "body",
+      marginRight: 50,
+      marginLeft: -20,
+    });
+  }
 });
 quietScreen.endFlexSection();
-
 quietScreen.endFlexRow();
-quietScreen.addButton({ label: "Continuar", action: "goQuizNow" });
 
-//colocar imagens pls :3
+quietScreen.onEnter(({ ui }) => {
+  ui.addCountdownTimer({
+    seconds: 10,
+    label: "Tempo",
+    showZero: false,
+    dangerAlways: true,
+  });
+});
