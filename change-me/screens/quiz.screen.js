@@ -1,8 +1,8 @@
 import { Screen } from "../../src/core/Screen.js";
 import { answerIsCorrect, recordAnswer, addTeamPoints } from "../../src/core/pointsHelpers.js";
 
-/** Duração das mensagens dock do quiz + atraso antes do leaderboard. */
-export const QUIZ_FEEDBACK_DOCK_MS = 4500;
+/** Duração da mensagem dock (certo/errado) no leaderboard. */
+export const QUIZ_FEEDBACK_DOCK_MS = 9000;
 
 export let quizScreen = new Screen("quiz");
 
@@ -24,7 +24,8 @@ quizScreen.useDefaultQuiz({
 });
 
 /**
- * @returns {{ leaderboardDelayMs: number }} milissegundos antes de navegar para o leaderboard.
+ * Não mostra UI aqui (o clear do próximo ecrã apagava a caixa). Devolve dados para o leaderboard.
+ * @returns {{ quizFeedbackDock: { html: string, boxClassName: string, ariaLabel: string, duration: number } }}
  */
 export function onQuizAnswered(ctx) {
   const info = recordAnswer(ctx);
@@ -42,6 +43,7 @@ export function onQuizAnswered(ctx) {
   }
 
   addTeamPoints(ctx, roundPoints);
+
   if (isRight) {
     const html = info.hadWrongBefore
       ? `CORRETO!<br>+${roundPoints} pts<br>(tinhas errado antes)`
@@ -49,14 +51,14 @@ export function onQuizAnswered(ctx) {
     const ariaLabel = info.hadWrongBefore
       ? `Correto. Mais ${roundPoints} pontos. Tinhas errado antes.`
       : `Correto. Mais ${roundPoints} pontos.`;
-    ctx.ui.showMessage("", {
-      dock: "top-left",
-      boxClassName: "ui-shadow-box--docked-success",
-      duration: QUIZ_FEEDBACK_DOCK_MS,
-      ariaLabel,
-      html,
-    });
-    return { leaderboardDelayMs: QUIZ_FEEDBACK_DOCK_MS };
+    return {
+      quizFeedbackDock: {
+        html,
+        ariaLabel,
+        boxClassName: "ui-shadow-box--docked-success",
+        duration: QUIZ_FEEDBACK_DOCK_MS,
+      },
+    };
   }
 
   const ariaLabel = info.hadWrongBefore
@@ -65,12 +67,12 @@ export function onQuizAnswered(ctx) {
   const html = info.hadWrongBefore
     ? `RESPOSTA ERRADA!<br>-1 pt<br>(novamente)`
     : `RESPOSTA ERRADA!<br>-1 pt`;
-  ctx.ui.showMessage("", {
-    dock: "top-left",
-    boxClassName: "ui-shadow-box--docked-error",
-    duration: QUIZ_FEEDBACK_DOCK_MS,
-    ariaLabel,
-    html,
-  });
-  return { leaderboardDelayMs: QUIZ_FEEDBACK_DOCK_MS };
+  return {
+    quizFeedbackDock: {
+      html,
+      ariaLabel,
+      boxClassName: "ui-shadow-box--docked-error",
+      duration: QUIZ_FEEDBACK_DOCK_MS,
+    },
+  };
 }

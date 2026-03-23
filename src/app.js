@@ -46,6 +46,7 @@ function extractSharedState(state) {
     selectedVideoId: state.selectedVideoId || "",
     gallerySeed: typeof state.gallerySeed === "number" ? state.gallerySeed : 0,
     galleryEpoch: typeof state.galleryEpoch === "number" ? state.galleryEpoch : 0,
+    pendingQuizFeedbackDock: state.pendingQuizFeedbackDock ?? null,
   };
 }
 
@@ -60,6 +61,13 @@ function applySharedState(state, shared) {
   if (typeof shared.selectedVideoId === "string") state.selectedVideoId = shared.selectedVideoId;
   if (typeof shared.gallerySeed === "number") state.gallerySeed = shared.gallerySeed;
   if (typeof shared.galleryEpoch === "number") state.galleryEpoch = shared.galleryEpoch;
+  if (Object.prototype.hasOwnProperty.call(shared, "pendingQuizFeedbackDock")) {
+    state.pendingQuizFeedbackDock = shared.pendingQuizFeedbackDock;
+  }
+}
+
+function payloadEqual(a, b) {
+  return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 }
 
 function loadTeamsFromStorage() {
@@ -168,7 +176,18 @@ export async function createApp(mountEl, sessionConfig) {
   });
 
   sync.onState((msg) => {
-    applySharedState(state, msg.sharedState);
+    const screenName = msg.screen || "home";
+    const payload = msg.payload ?? null;
+    /** Evita segundo mount no P2 quando o servidor reenvia o mesmo ecrã (eco do próprio publish): unmount apagava a mensagem dock do quiz. */
+    const echoSkip =
+      isController &&
+      screenName === currentGlobalScreen &&
+      payloadEqual(payload, currentGlobalPayload);
+
+    if (!echoSkip) {
+      applySharedState(state, msg.sharedState);
+    }
+
     if (
       isController &&
       lastControllerLocalNavAt > 0 &&
@@ -177,7 +196,12 @@ export async function createApp(mountEl, sessionConfig) {
     ) {
       return;
     }
-    renderGlobal(msg.screen || "home", msg.payload ?? null);
+
+    if (echoSkip) {
+      return;
+    }
+
+    renderGlobal(screenName, payload);
   });
 
   sync.connect();

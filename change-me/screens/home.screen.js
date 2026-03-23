@@ -4,6 +4,7 @@ import { serial } from "../../src/serial.js";
 export let homeScreen = new Screen("home");
 
 let homeSerialUnsub = null;
+let homeKeyHandler = null;
 
 homeScreen.setLayout({ gap: 10 });
 
@@ -48,8 +49,9 @@ homeScreen.addMountStep(({ ui }) => {
   ui.beginShadowBox({ dock: "bottom-right" });
   ui.setCornerHint({
     html:
-      'PRIME:<br><span class="ui-corner-hint-dot ui-corner-hint-dot--white" aria-hidden="true">⬤</span> PARA CONTINUAR<br><span class="ui-corner-hint-dot ui-corner-hint-dot--blue" aria-hidden="true" >⬤</span> LEADERBOARD',
-    ariaLabel: "Press white button to continue, press blue button for leaderboard",
+      'PRIME:<br><span class="ui-corner-hint-dot ui-corner-hint-dot--white" aria-hidden="true">⬤</span> CONTINUAR<br><span class="ui-corner-hint-dot ui-corner-hint-dot--blue" aria-hidden="true" >⬤</span> LEADERBOARD',
+    ariaLabel:
+      "Prima o botão branco ou a tecla B para continuar; botão azul ou tecla L para o leaderboard",
     className: "ui-corner-hint-badge--wide",
     inline: true,
   });
@@ -70,9 +72,37 @@ homeScreen.addMountStep(({ ui }) => {
   });
 });
 
+homeScreen.onEnter(({ ui }) => {
+  if (document.body.dataset.role === "p1") return;
+  homeKeyHandler = (e) => {
+    if (e.repeat) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const t = e.target;
+    if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement) return;
+    if (t && /** @type {HTMLElement} */ (t).isContentEditable) return;
+
+    const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    if (k === "l") {
+      e.preventDefault();
+      ui.runAction("goLeaderboard");
+      return;
+    }
+    if (k === "b") {
+      e.preventDefault();
+      ui.runAction("saveTeamName");
+      return;
+    }
+  };
+  window.addEventListener("keydown", homeKeyHandler);
+});
+
 homeScreen.onExit(() => {
   if (homeSerialUnsub) {
     homeSerialUnsub();
     homeSerialUnsub = null;
+  }
+  if (homeKeyHandler) {
+    window.removeEventListener("keydown", homeKeyHandler);
+    homeKeyHandler = null;
   }
 });

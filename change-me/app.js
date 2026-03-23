@@ -63,6 +63,12 @@ export const screens = [
 
 export const actions = {
   goHome: ({ goTo }) => goTo("home"),
+  /** Limpa a equipa ativa e volta ao início (terminar jogo). */
+  endGameAndGoHome: (ctx) => {
+    ctx.state.teamName = "";
+    if (typeof ctx.persistTeams === "function") ctx.persistTeams();
+    ctx.goTo("home");
+  },
   goTutorial: ({ goTo }) => goTo("tutorial"),
   goGallery: (ctx) => {
     ctx.state.gallerySeed = (Math.random() * 0x7fffffff) | 0;
@@ -108,7 +114,12 @@ export const actions = {
   saveTeamName: (ctx) => {
     const name = persistStateTeam(ctx);
     if (!name) {
-      ctx.ui.showMessage("Escreve o nome da equipa.", { type: "info" });
+      ctx.ui.showMessage("", {
+        dock: "top-left",
+        html: "ESCREVE O NOME DA EQUIPA!",
+        ariaLabel: "Escreve o nome da equipa.",
+        duration: 5000,
+      });
       return;
     }
     ctx.goTo("tutorial");
@@ -117,14 +128,11 @@ export const actions = {
   pointsPerCorrect: POINTS_PER_CORRECT,
 
   quizAnswered: (ctx) => {
-    const { leaderboardDelayMs = 0 } = onQuizAnswered(ctx);
+    const { quizFeedbackDock } = onQuizAnswered(ctx);
+    ctx.state.pendingQuizFeedbackDock = quizFeedbackDock ?? null;
     ctx.state.gallerySeed = (Math.random() * 0x7fffffff) | 0;
     ctx.state.galleryEpoch = Date.now();
-    if (leaderboardDelayMs > 0) {
-      setTimeout(() => ctx.goTo("leaderboard"), leaderboardDelayMs);
-    } else {
-      ctx.goTo("leaderboard");
-    }
+    ctx.goTo("leaderboard");
   },
 
   // Timeout do quiz: sem resposta até ao fim => sai com 0 pontos neste round.
