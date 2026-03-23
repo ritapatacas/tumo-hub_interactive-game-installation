@@ -46,7 +46,7 @@ homeScreen.addMountStep(({ ui }) => {
     return;
   }
 
-  ui.beginShadowBox({ dock: "bottom-right" });
+  ui.beginShadowBox({ dock: "bottom-left", radius: "3px" });
   ui.setCornerHint({
     html:
       'PRIME:<br><span class="ui-corner-hint-dot ui-corner-hint-dot--white" aria-hidden="true">⬤</span> CONTINUAR<br><span class="ui-corner-hint-dot ui-corner-hint-dot--blue" aria-hidden="true" >⬤</span> LEADERBOARD',

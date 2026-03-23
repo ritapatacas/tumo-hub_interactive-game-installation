@@ -63,9 +63,27 @@ export const screens = [
 
 export const actions = {
   goHome: ({ goTo }) => goTo("home"),
-  /** Limpa a equipa ativa e volta ao início (terminar jogo). */
+  /** Limpa a equipa ativa e o contexto desta sessão; volta à home para a próxima equipa. */
   endGameAndGoHome: (ctx) => {
-    ctx.state.teamName = "";
+    const s = ctx.state;
+    if (s.__attentionTimerId) {
+      clearTimeout(s.__attentionTimerId);
+      s.__attentionTimerId = null;
+    }
+    if (s.__quietTimerId) {
+      clearTimeout(s.__quietTimerId);
+      s.__quietTimerId = null;
+    }
+    s.teamName = "";
+    s.selectedVideoSrc = "";
+    s.selectedVideoId = "";
+    s.selectedVideoQuiz = null;
+    s.pendingQuizFeedbackDock = null;
+    s.gallerySeed = 0;
+    s.galleryEpoch = 0;
+    if (Object.prototype.hasOwnProperty.call(s, "gallerySpotlightIndex")) {
+      delete s.gallerySpotlightIndex;
+    }
     if (typeof ctx.persistTeams === "function") ctx.persistTeams();
     ctx.goTo("home");
   },

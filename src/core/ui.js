@@ -288,14 +288,14 @@ export class UI {
   }
 
   /**
-   * Dica no canto inferior direito. `text` é texto simples (`\n` → quebra com `white-space: pre-line`).
+   * Dica no canto inferior esquerdo. `text` é texto simples (`\n` → quebra com `white-space: pre-line`).
    * Se `html` estiver definido (string não vazia após trim), usa `innerHTML` em vez de `text` (ex.: spans com cor).
    * Omitir ambos ou vazios = não mostrar.
    * @param {{ text?: string, html?: string, ariaLabel?: string, className?: string, inline?: boolean }} opts
    *   Com `html`, define `ariaLabel` para acessibilidade (texto plano equivalente).
    *   `className` – classes extra no badge (ex.: `ui-corner-hint-badge--wide`).
    *   `inline` – se true, coloca a dica no contentor atual (ex.: dentro de `beginShadowBox`), em fluxo normal;
-   *   por omissão fica `position: fixed` no canto inferior direito do viewport.
+   *   por omissão fica `position: fixed` no canto inferior esquerdo do viewport.
    */
   setCornerHint({ text, html, ariaLabel, className, inline } = {}) {
     if (this._cornerHintBadgeEl) {
@@ -474,13 +474,13 @@ export class UI {
    * Abre uma "shadow box": um card translúcido que agrupa vários elementos
    * (texto, botões, imagens, etc.) para criar contraste com a imagem de fundo.
    * Fechar com endShadowBox().
-   * @param {{ padding?: number | string, radius?: string, background?: string, marginTop?: number | string, marginBottom?: number | string, dock?: "bottom-right" }} opts
-   *   `dock: "bottom-right"` — caixa fixa no canto inferior direito do viewport (fora do fluxo centrado do ecrã).
+   * @param {{ padding?: number | string, radius?: string, background?: string, marginTop?: number | string, marginBottom?: number | string, dock?: "bottom-left" }} opts
+   *   `dock: "bottom-left"` — caixa fixa no canto inferior esquerdo do viewport (fora do fluxo centrado do ecrã).
    */
   beginShadowBox(opts = {}) {
     const box = document.createElement("div");
-    const dockBr = opts.dock === "bottom-right";
-    box.className = "ui-shadow-box" + (dockBr ? " ui-shadow-box--dock-br" : "");
+    const dockBl = opts.dock === "bottom-left";
+    box.className = "ui-shadow-box" + (dockBl ? " ui-shadow-box--dock-bl" : "");
 
     const themeRadius = this.theme?.radius?.md ?? "16px";
     const padding = opts.padding ?? 20;
@@ -491,7 +491,7 @@ export class UI {
     box.style.flexDirection = "column";
     box.style.gap = this._contentEl ? this._contentEl.style.gap || "14px" : "14px";
     box.style.padding = typeof padding === "number" ? padding + "px" : padding;
-    if (!dockBr) {
+    if (!dockBl) {
       if (opts.marginTop !== undefined) {
         box.style.marginTop = typeof opts.marginTop === "number" ? opts.marginTop + "px" : String(opts.marginTop);
       }
@@ -504,7 +504,7 @@ export class UI {
     box.style.backdropFilter = "blur(1.5px)";
     box.style.boxShadow = "0 50px 125px rgba(0, 0, 0, 0.40)";
 
-    const parent = dockBr ? this.overlays.root : this._ensureContent();
+    const parent = dockBl ? this.overlays.root : this._ensureContent();
     parent.appendChild(box);
     this._containerStack.push(box);
   }
@@ -539,6 +539,61 @@ export class UI {
    *   Negrito: `**texto**`; negrito + sublinhado: `***texto***`.
    *   Quebras de linha: caracteres `\n` no string (ex. template literals com Enter).
    */
+  /**
+   * Cria o contentor de imagem (reutilizado por addImage e addText com leadingImage).
+   * @returns {HTMLDivElement | null}
+   */
+  _createImageWrapElement({
+    filename,
+    size = 100,
+    align = "center",
+    slotAspectRatio,
+    objectFit = "contain",
+    marginLeft,
+    marginRight,
+    marginTop,
+    marginBottom,
+  } = {}) {
+    if (!filename) return null;
+
+    const wrap = document.createElement("div");
+    wrap.className = "ui-image-wrap ui-image-wrap--" + (align === "left" ? "left" : align === "right" ? "right" : "center");
+    if (slotAspectRatio) wrap.classList.add("ui-image-wrap--slot");
+
+    const img = document.createElement("img");
+    img.alt = filename;
+    img.src = "/assets/images/" + filename;
+    img.className = "ui-image";
+    if (slotAspectRatio) {
+      wrap.style.width = typeof size === "number" ? size + "%" : "100%";
+      wrap.style.maxWidth = "100%";
+      wrap.style.aspectRatio = slotAspectRatio;
+      wrap.style.flexShrink = "0";
+      img.style.width = "100%";
+      img.style.height = "100%";
+      img.style.objectFit = objectFit;
+      img.style.display = "block";
+    } else {
+      img.style.width = typeof size === "number" ? size + "%" : "100%";
+      img.style.maxWidth = "100%";
+      img.style.height = "auto";
+      img.style.display = "block";
+    }
+
+    wrap.appendChild(img);
+
+    const setMargin = (v, prop) => {
+      if (v === undefined) return;
+      wrap.style[prop] = typeof v === "number" ? `${v}px` : String(v);
+    };
+    setMargin(marginLeft, "marginLeft");
+    setMargin(marginRight, "marginRight");
+    setMargin(marginTop, "marginTop");
+    setMargin(marginBottom, "marginBottom");
+
+    return wrap;
+  }
+
   addText({
     text,
     variant = "body",
@@ -550,6 +605,7 @@ export class UI {
     fontSize,
     paragraphGap,
     color,
+    leadingImage,
   } = {}) {
     const raw = text ?? "";
     const useParagraphs = paragraphGap !== undefined;
@@ -655,7 +711,45 @@ export class UI {
       appendTextWithBoldSegments(el, raw, strongWeight);
     }
 
-    this._ensureContent().appendChild(el);
+    if (leadingImage?.filename) {
+      if (!isTitle) {
+        el.style.textAlign = "left";
+        el.style.alignSelf = "stretch";
+      }
+      const row = document.createElement("div");
+      row.className = "ui-text-leading";
+      row.style.display = "flex";
+      row.style.flexDirection = "row";
+      row.style.alignItems = "flex-start";
+      row.style.gap =
+        typeof leadingImage.gap === "number" ? `${leadingImage.gap}px` : leadingImage.gap != null ? css(leadingImage.gap) : "12px";
+      row.style.width = "100%";
+      row.style.boxSizing = "border-box";
+      row.style.minWidth = "0";
+
+      const imgWrap = this._createImageWrapElement({
+        filename: leadingImage.filename,
+        size: leadingImage.size ?? 18,
+        align: "left",
+        slotAspectRatio: leadingImage.slotAspectRatio ?? "1 / 1",
+        objectFit: leadingImage.objectFit ?? "contain",
+        marginLeft: leadingImage.marginLeft,
+        marginRight: leadingImage.marginRight,
+        marginTop: leadingImage.marginTop,
+        marginBottom: leadingImage.marginBottom,
+      });
+      if (!imgWrap) {
+        this._ensureContent().appendChild(el);
+        return;
+      }
+      el.style.flex = "1 1 0%";
+      el.style.minWidth = "0";
+      row.appendChild(imgWrap);
+      row.appendChild(el);
+      this._ensureContent().appendChild(row);
+    } else {
+      this._ensureContent().appendChild(el);
+    }
   }
 
   /**
@@ -729,43 +823,18 @@ export class UI {
     marginTop,
     marginBottom,
   } = {}) {
-    if (!filename) return;
-
-    const wrap = document.createElement("div");
-    wrap.className = "ui-image-wrap ui-image-wrap--" + (align === "left" ? "left" : align === "right" ? "right" : "center");
-    if (slotAspectRatio) wrap.classList.add("ui-image-wrap--slot");
-
-    const img = document.createElement("img");
-    img.alt = filename;
-    img.src = "/assets/images/" + filename;
-    img.className = "ui-image";
-    if (slotAspectRatio) {
-      wrap.style.width = typeof size === "number" ? size + "%" : "100%";
-      wrap.style.maxWidth = "100%";
-      wrap.style.aspectRatio = slotAspectRatio;
-      wrap.style.flexShrink = "0";
-      img.style.width = "100%";
-      img.style.height = "100%";
-      img.style.objectFit = objectFit;
-      img.style.display = "block";
-    } else {
-      img.style.width = typeof size === "number" ? size + "%" : "100%";
-      img.style.maxWidth = "100%";
-      img.style.height = "auto";
-      img.style.display = "block";
-    }
-
-    wrap.appendChild(img);
-
-    const setMargin = (v, prop) => {
-      if (v === undefined) return;
-      wrap.style[prop] = typeof v === "number" ? `${v}px` : String(v);
-    };
-    setMargin(marginLeft, "marginLeft");
-    setMargin(marginRight, "marginRight");
-    setMargin(marginTop, "marginTop");
-    setMargin(marginBottom, "marginBottom");
-
+    const wrap = this._createImageWrapElement({
+      filename,
+      size,
+      align,
+      slotAspectRatio,
+      objectFit,
+      marginLeft,
+      marginRight,
+      marginTop,
+      marginBottom,
+    });
+    if (!wrap) return;
     this._ensureContent().appendChild(wrap);
   }
 
@@ -792,7 +861,11 @@ export class UI {
     else input.style.alignSelf = "stretch";
 
     input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") this.runAction(actionOnEnter);
+      if (e.key === "Enter" && actionOnEnter) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.runAction(actionOnEnter);
+      }
     });
 
     this._ensureContent().appendChild(input);

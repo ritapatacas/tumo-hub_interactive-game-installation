@@ -6,6 +6,7 @@ import { SessionSync } from "./core/sessionSync.js";
 
 // Student configuration (screens + actions + flow)
 import { theme, actions, screens } from "../change-me/app.js";
+import { mergeDummyLeaderboardIfEnabled } from "./core/dummyLeaderboard.js";
 
 const TEAMS_STORAGE_KEY = "tumo_hub_teams";
 const SHARED_SCREENS = new Set(["home", "tutorial", "attention", "quiet", "leaderboard"]);
@@ -91,6 +92,8 @@ export async function createApp(mountEl, sessionConfig) {
     selectedVideoQuiz: null,
     videosData: [],
   };
+
+  mergeDummyLeaderboardIfEnabled(state);
 
   // Carrega as perguntas a partir de perguntas.json
   const res = await fetch("/perguntas.json");
@@ -186,6 +189,8 @@ export async function createApp(mountEl, sessionConfig) {
 
     if (!echoSkip) {
       applySharedState(state, msg.sharedState);
+      // O sync substitui `teams`; voltar a aplicar dummy para `?dummyLeaderboard=1` ou lista vazia.
+      mergeDummyLeaderboardIfEnabled(state);
     }
 
     if (

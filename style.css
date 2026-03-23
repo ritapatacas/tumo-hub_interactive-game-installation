@@ -59,33 +59,37 @@ html, body {
   min-height: 0;
 }
 
-/* Indicador de papel (P1 / P2), canto inferior esquerdo */
+/* Indicador de papel (P1 / P2), canto inferior direito — mesmo “card” que ui-shadow-box */
 .ui-player-role-badge {
   position: fixed;
   bottom: 24px;
-  left: 24px;
+  right: 24px;
   z-index: 1000;
-  padding: 0;
+  padding: 14px 18px;
   margin: 0;
-  background: none;
+  background: rgba(0, 0, 0, 0.28);
   border: none;
-  border-radius: 0;
+  border-radius: 3px;
+  box-shadow: 0 50px 125px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(1.5px);
+  -webkit-backdrop-filter: blur(1.5px);
   font-family: "Press Start 2P", monospace;
   font-size: var(--ui-pixel-badge-font-size);
   font-weight: 400;
   line-height: 1.6;
   color: #EEB628; /* amarelo torrado / dark goldenrod */
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    0 2px 6px rgba(0, 0, 0, 0.35);
   pointer-events: none;
   user-select: none;
 }
 
-/* Dica opcional (ex.: “press any button…”), canto inferior direito;
+/* Dica opcional (ex.: botões físicos), canto inferior esquerdo;
    pontuação da equipa: mesmo formato (Press Start 2P, amarelo), canto superior direito */
 .ui-corner-hint-badge,
 .ui-team-score {
   position: fixed;
-  right: 24px;
   z-index: 1000;
   max-width: min(320px, calc(100vw - 48px));
   padding: 0;
@@ -98,7 +102,6 @@ html, body {
   font-weight: 400;
   line-height: 1.7;
   color: #EEB628;
-  text-align: right;
   white-space: pre-line;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
   pointer-events: none;
@@ -106,7 +109,16 @@ html, body {
 }
 
 .ui-corner-hint-badge {
+  left: 24px;
   bottom: 24px;
+  text-align: left;
+}
+
+.ui-team-score {
+  right: 24px;
+  top: 24px;
+  text-align: right;
+  text-transform: uppercase;
 }
 
 /* Dica mais larga (ex.: home — duas linhas com símbolos) */
@@ -114,17 +126,17 @@ html, body {
   max-width: min(520px, calc(100vw - 48px));
 }
 
-/* Shadow box ancorada ao canto inferior direito (beginShadowBox({ dock: "bottom-right" })) */
-.ui-shadow-box--dock-br {
+/* Shadow box ancorada ao canto inferior esquerdo (beginShadowBox({ dock: "bottom-left" })) */
+.ui-shadow-box--dock-bl {
   position: fixed;
-  right: 24px;
+  left: 24px;
   bottom: 24px;
   z-index: 900;
   width: fit-content;
   max-width: min(520px, calc(100vw - 48px));
   min-width: 0;
   box-sizing: border-box;
-  align-items: flex-end;
+  align-items: flex-start;
 }
 
 /* Aviso de ruído (showMessage + dock top-left): canto superior esquerdo, estilo da dica pixel */
@@ -190,11 +202,11 @@ html, body {
   color: #ff3b3b;
 }
 
-/* Dentro da dock-br: a dica não estica à largura fixa — a caixa acompanha o texto */
-.ui-shadow-box--dock-br .ui-corner-hint-badge--inline {
+/* Dentro da dock-bl: a dica não estica à largura fixa — a caixa acompanha o texto */
+.ui-shadow-box--dock-bl .ui-corner-hint-badge--inline {
   width: max-content;
   max-width: 100%;
-  align-self: flex-end;
+  align-self: flex-start;
 }
 
 /* Dica no fluxo do ecrã (ex.: dentro de .ui-shadow-box), não fixa ao viewport */
@@ -229,11 +241,6 @@ html, body {
 
 .ui-corner-hint-dot--blue {
   color: #0854ac;
-}
-
-.ui-team-score {
-  top: 24px;
-  text-transform: uppercase;
 }
 
 .ui-team-score > p {
@@ -573,11 +580,27 @@ html, body {
 }
 
 .ui-image-wrap--slot .ui-image {
-  border-radius: 12px;
+  border-radius: 2px;
 }
 
 .ui-image {
-  border-radius: 12px;
+  border-radius: 2px;
+}
+
+/* Texto com imagem à esquerda (addText + leadingImage) */
+.ui-text-leading {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  align-self: stretch;
+  align-items: flex-start;
+}
+
+/* Ícone um pouco acima para alinhar com a primeira linha (cap-height / fonte hand) */
+.ui-text-leading > .ui-image-wrap {
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: -0.22em;
 }
 
 /* Flex row: largura do contentor pai (layout / screen-content), não 80% */
@@ -1104,7 +1127,7 @@ html, body {
   left: 50%;
   transform: translateX(-50%);
   padding: 12px 20px;
-  border-radius: 12px;
+  border-radius: 2px;
   background: var(--card);
   border: 1px solid var(--border);
   color: var(--text);
@@ -1173,7 +1196,7 @@ html, body {
   align-items: center;
   gap: 12px 16px;
   padding: 4px 28px;
-  border-radius: 10px;
+  border-radius: 4px;
   background: rgba(0 0 0 / 0.21);
   min-height: 3.15rem;
 }

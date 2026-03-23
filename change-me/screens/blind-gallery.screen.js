@@ -15,11 +15,11 @@ blindGalleryScreen.setBackgroundImage({
   position: "center center",
 });
 
-blindGalleryScreen.beginShadowBox({ dock: "bottom-right" });
+blindGalleryScreen.beginShadowBox({ dock: "bottom-left", radius: "3px" });
 
 blindGalleryScreen.setCornerHint({
   html:
-    'PRIME:<br><span class="ui-corner-hint-dot ui-corner-hint-dot--white" aria-hidden="true">⬤</span> PARA CONTINUAR',
+    'PRIME:<br><span class="ui-corner-hint-dot ui-corner-hint-dot--white" aria-hidden="true">⬤</span> CONTINUAR',
   ariaLabel: "Prima o botão branco para continuar",
   className: "ui-corner-hint-badge--wide",
   inline: true,

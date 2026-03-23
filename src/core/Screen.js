@@ -76,6 +76,7 @@ export class Screen {
    *   `paragraphGap`: opcional; separadores de parágrafo são `\n\n` (ver `ui.addText`).
    *   Negrito: `**texto**`; negrito + sublinhado: `***texto***` (pode repetir no mesmo string).
    *   Novas linhas: usa `\n` no texto.
+   *   `leadingImage`: opcional — `{ filename, size?, slotAspectRatio?, objectFit?, gap? }`; imagem à esquerda do texto numa fila (LTR).
    */
   addText(opts = {}) {
     if (opts.shadow) {
@@ -174,7 +175,7 @@ export class Screen {
    * cria contraste com a imagem de fundo. Fechar com endShadowBox().
    * Tudo o que for adicionado entre beginShadowBox() e endShadowBox() fica
    * dentro da mesma caixa.
-   * @param {{ padding?: number | string, radius?: string, background?: string, marginTop?: number | string, marginBottom?: number | string, dock?: "bottom-right" }} opts
+   * @param {{ padding?: number | string, radius?: string, background?: string, marginTop?: number | string, marginBottom?: number | string, dock?: "bottom-left" }} opts
    */
   beginShadowBox(opts = {}) {
     this._steps.push(({ ui }) => ui.beginShadowBox(opts));

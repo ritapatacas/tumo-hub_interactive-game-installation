@@ -29,13 +29,15 @@ leaderboardScreen.addMountStep(({ ui, state }) => {
     return;
   }
   const hasTeam = String(state.teamName ?? "").trim().length > 0;
+  ui.beginShadowBox({ dock: "bottom-left", radius: "4px" });
   if (hasTeam) {
     ui.setCornerHint({
       html:
-        'PRIME:<br><span class="ui-corner-hint-dot ui-corner-hint-dot--white" aria-hidden="true">⬤</span> PARA JOGAR NOVAMENTE<br><span class="ui-corner-hint-dot ui-corner-hint-dot--red" aria-hidden="true">⬤</span> PARA TERMINAR O JOGO',
+        'PRIME:<br><span class="ui-corner-hint-dot ui-corner-hint-dot--white" aria-hidden="true">⬤</span> JOGAR NOVAMENTE<br><span class="ui-corner-hint-dot ui-corner-hint-dot--red" aria-hidden="true">⬤</span> TERMINAR O JOGO',
       ariaLabel:
         "Prima o botão branco para jogar novamente, o botão vermelho para terminar o jogo",
       className: "ui-corner-hint-badge--wide",
+      inline: true,
     });
   } else {
     ui.setCornerHint({
@@ -43,8 +45,10 @@ leaderboardScreen.addMountStep(({ ui, state }) => {
         'PRIME:<br><span class="ui-corner-hint-dot ui-corner-hint-dot--white" aria-hidden="true">⬤</span> PARA VOLTAR',
       ariaLabel: "Prima o botão branco para voltar",
       className: "ui-corner-hint-badge--wide",
+      inline: true,
     });
   }
+  ui.endShadowBox();
 });
 
 leaderboardScreen.onEnter(({ ui, state }) => {

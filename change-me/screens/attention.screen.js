@@ -21,7 +21,7 @@ attentionScreen.addText({ text: "Fica atento", variant: "title", vAlign: "top", 
 
 attentionScreen.addMountStep(({ ui }) => {
   if (document.body.dataset.role === "p1") return;
-  ui.beginShadowBox({ dock: "bottom-right" });
+  ui.beginShadowBox({ dock: "bottom-left", radius: "3px" });
   ui.setCornerHint({
     html:
       'PRIME:<br><span class="ui-corner-hint-dot ui-corner-hint-dot--white" aria-hidden="true">⬤</span> CONTINUAR',
