@@ -23,7 +23,7 @@ export const theme = {
   colors,
   text: {
     titleSize: "80px",
-    bodySize: "clamp(24px, 3.15vw, 30px)",
+    bodySize: "clamp(30px, 3.15vw, 30px)",
     /** Jersey 15 — Sarah Cadigan-Fried (Google Fonts) */
     titleFontFamily: "'Jersey 15', system-ui, sans-serif",
     bodyFontFamily: "'Jersey 15', system-ui, sans-serif",
@@ -38,7 +38,7 @@ export const theme = {
   quiz: {
     question: {
       color: colors.text,
-      fontSize: "22px",
+      fontSize: "50px",
     },
     options: [
       { color: colors.red },
@@ -51,7 +51,7 @@ export const theme = {
       optionsBg: colors.quizzOptionsBg,
       afterTitle: "16px",    // entre o título do ecrã ("Quiz") e o card da pergunta
       afterQuestion: "42px", // entre o texto da pergunta e a lista de opções
-      betweenOptions: "10px", // entre cada opção (botões)
+      betweenOptions: "22px", // entre cada opção (botões)
     },
   },
 };

@@ -1,9 +1,11 @@
 import { Screen } from "../../src/core/Screen.js";
+import { getTeam } from "../../src/core/team.js";
 import { serial } from "../../src/serial.js";
 
 let hearingImagePreloaded = false;
 let p2VideoSkipKeyHandler = null;
 let p2VideoSkipSerialUnsub = null;
+let attentionEnterAdvanceHandler = null;
 
 export let attentionScreen = new Screen("attention");
 
@@ -17,10 +19,17 @@ attentionScreen.setBackgroundImage({
 
 attentionScreen.addText({ text: "Fica atento", variant: "title", vAlign: "top", marginTop: "10.65vh" });
 
-attentionScreen.addMountStep(({ ui, payload }) => {
-  const isP1 = document.body.dataset.role === "p1";
-  const p2DuringVideo = !isP1 && payload?.p2VideoListen;
-  ui.setCornerHint(p2DuringVideo ? { text: "Press any button" } : { text: "" });
+attentionScreen.addMountStep(({ ui }) => {
+  if (document.body.dataset.role === "p1") return;
+  ui.beginShadowBox({ dock: "bottom-right" });
+  ui.setCornerHint({
+    html:
+      'PRIME:<br><span class="ui-corner-hint-dot ui-corner-hint-dot--white" aria-hidden="true">⬤</span> PARA CONTINUAR',
+    ariaLabel: "Prima o botão branco para continuar",
+    className: "ui-corner-hint-badge--wide",
+    inline: true,
+  });
+  ui.endShadowBox();
 });
 
 attentionScreen.beginFlexRow({
@@ -69,7 +78,10 @@ attentionScreen.addMountStep(({ ui }) => {
 attentionScreen.endFlexSection();
 attentionScreen.endFlexRow();
 
-attentionScreen.onEnter(({ ui, payload }) => {
+attentionScreen.onEnter(({ ui, state, payload }) => {
+  const team = getTeam(state);
+  ui.addTeamScore(team.name, team.points);
+
   if (!hearingImagePreloaded) {
     hearingImagePreloaded = true;
     const pre = new Image();
@@ -98,6 +110,12 @@ attentionScreen.onEnter(({ ui, payload }) => {
     label: "Tempo",
     showZero: false,
   });
+  attentionEnterAdvanceHandler = (e) => {
+    if (e.key !== "Enter") return;
+    if (e.repeat) return;
+    ui.runAction("advanceFromAttention");
+  };
+  window.addEventListener("keydown", attentionEnterAdvanceHandler);
 });
 
 attentionScreen.onExit(() => {
@@ -108,5 +126,9 @@ attentionScreen.onExit(() => {
   if (p2VideoSkipSerialUnsub) {
     p2VideoSkipSerialUnsub();
     p2VideoSkipSerialUnsub = null;
+  }
+  if (attentionEnterAdvanceHandler) {
+    window.removeEventListener("keydown", attentionEnterAdvanceHandler);
+    attentionEnterAdvanceHandler = null;
   }
 });

@@ -15,7 +15,17 @@ blindGalleryScreen.setBackgroundImage({
   position: "center center",
 });
 
-blindGalleryScreen.setCornerHint({ text: "Prima Enter para carregar o vídeo" });
+blindGalleryScreen.beginShadowBox({ dock: "bottom-right" });
+
+blindGalleryScreen.setCornerHint({
+  html:
+    'PRIME:<br><span class="ui-corner-hint-dot ui-corner-hint-dot--white" aria-hidden="true">⬤</span> PARA CONTINUAR',
+  ariaLabel: "Prima o botão branco para continuar",
+  className: "ui-corner-hint-badge--wide",
+  inline: true,
+});
+
+blindGalleryScreen.endShadowBox();
 
 /** P2: só quadrados, sem miniaturas nem texto; destaque igual ao P1. */
 blindGalleryScreen.addSpotlightGallery({
@@ -23,27 +33,30 @@ blindGalleryScreen.addSpotlightGallery({
   variant: "blind",
 });
 
-blindGalleryScreen.beginFlexRow({ gap: 12, justify: "center" });
-blindGalleryScreen.addButton({ label: "Carregar vídeo selecionado", action: "loadSpotlightVideoFromGallery" });
-blindGalleryScreen.addButton({ label: "Ligar Arduino", action: "connectArduino" });
-blindGalleryScreen.addButton({ label: "Voltar", action: "goHome" });
-blindGalleryScreen.endFlexRow();
-
-let blindGalleryEnterKeyHandler = null;
+let blindGalleryKeyHandler = null;
 
 blindGalleryScreen.onEnter(({ ui, state }) => {
   const team = getTeam(state);
   ui.addTeamScore(team.name, team.points);
-  blindGalleryEnterKeyHandler = (e) => {
-    if (e.key !== "Enter" || e.repeat) return;
-    ui.runAction("loadSpotlightVideoFromGallery");
+  blindGalleryKeyHandler = (e) => {
+    if (e.repeat) return;
+    if (e.key === "Tab") return;
+    if (["Control", "Shift", "Alt", "Meta"].includes(e.key)) return;
+
+    if (e.key === "Enter") {
+      ui.runAction("loadSpotlightVideoFromGallery");
+      return;
+    }
+    if (e.key === "a" || e.key === "A") {
+      ui.runAction("connectArduino");
+    }
   };
-  window.addEventListener("keydown", blindGalleryEnterKeyHandler);
+  window.addEventListener("keydown", blindGalleryKeyHandler);
 });
 
 blindGalleryScreen.onExit(() => {
-  if (blindGalleryEnterKeyHandler) {
-    window.removeEventListener("keydown", blindGalleryEnterKeyHandler);
-    blindGalleryEnterKeyHandler = null;
+  if (blindGalleryKeyHandler) {
+    window.removeEventListener("keydown", blindGalleryKeyHandler);
+    blindGalleryKeyHandler = null;
   }
 });

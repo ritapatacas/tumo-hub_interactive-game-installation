@@ -8,7 +8,7 @@ import { SessionSync } from "./core/sessionSync.js";
 import { theme, actions, screens } from "../change-me/app.js";
 
 const TEAMS_STORAGE_KEY = "tumo_hub_teams";
-const SHARED_SCREENS = new Set(["home", "tutorial", "preGallery", "attention", "quiet", "leaderboard"]);
+const SHARED_SCREENS = new Set(["home", "tutorial", "attention", "quiet", "leaderboard"]);
 const ROLE_ONLY = {
   video: "p1",
   quiz: "p2",
@@ -30,8 +30,8 @@ function resolveVisibleScreen(globalScreen, role) {
   }
   if (globalScreen === "quiz" && role === "p1") {
     return {
-      name: "waiting",
-      payload: { message: "O Player 2 está a responder ao quiz." },
+      name: "quiet",
+      payload: { p1WhileP2Quiz: true },
     };
   }
   return { name: "waiting", payload: { message: "A sessão está a avançar no outro ecrã." } };
@@ -110,8 +110,11 @@ export async function createApp(mountEl, sessionConfig) {
     wsUrl: sessionConfig?.wsUrl,
   });
 
-  let currentGlobalScreen = "attention";
+  let currentGlobalScreen = "home";
   let currentGlobalPayload = null;
+  /** Evita que o P2 reaplique um ecrã antigo do sync (ex. gallery) depois de ir para tutorial. */
+  let lastControllerLocalNavAt = 0;
+
   const renderGlobal = (screenName, payload) => {
     currentGlobalScreen = screenName;
     currentGlobalPayload = payload ?? null;
@@ -125,7 +128,12 @@ export async function createApp(mountEl, sessionConfig) {
     actions,
     state,
     teamsStorageKey: TEAMS_STORAGE_KEY,
-    canRunAction: (actionName) => isController || actionName === "videoEndedAdvance",
+    canRunAction: (actionName) =>
+      isController ||
+      actionName === "videoEndedAdvance" ||
+      actionName === "advanceFromAttention" ||
+      actionName === "advanceFromQuiet" ||
+      actionName === "noisePenalty",
     onNavigateRequest: async ({ name, payload, meta, perform }) => {
       if (meta?.fromSync) {
         return perform(name, payload);
@@ -133,6 +141,7 @@ export async function createApp(mountEl, sessionConfig) {
       if (!isController) {
         return null;
       }
+      lastControllerLocalNavAt = Date.now();
       currentGlobalScreen = name;
       currentGlobalPayload = payload ?? null;
       sync.publishScreen({
@@ -160,7 +169,15 @@ export async function createApp(mountEl, sessionConfig) {
 
   sync.onState((msg) => {
     applySharedState(state, msg.sharedState);
-    renderGlobal(msg.screen || "attention", msg.payload ?? null);
+    if (
+      isController &&
+      lastControllerLocalNavAt > 0 &&
+      typeof msg.updatedAt === "number" &&
+      msg.updatedAt < lastControllerLocalNavAt
+    ) {
+      return;
+    }
+    renderGlobal(msg.screen || "home", msg.payload ?? null);
   });
 
   sync.connect();
@@ -172,6 +189,6 @@ export async function createApp(mountEl, sessionConfig) {
     });
   }
 
-  renderGlobal("attention", null);
+  renderGlobal("home", null);
   window.addEventListener("resize", () => ui.onResize());
 }

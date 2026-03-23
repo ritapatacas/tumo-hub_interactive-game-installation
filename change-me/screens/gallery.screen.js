@@ -3,7 +3,11 @@ import { getTeam } from "../../src/core/team.js";
 
 export let galleryScreen = new Screen("gallery");
 
-galleryScreen.setLayout({ gap: 0, vAlign: "top", variant: "display" });
+galleryScreen.setLayout({
+  align: { horizontal: "center", vertical: "center" },
+  marginTop: 80,
+  gap: 14,
+});
 
 galleryScreen.setBackgroundImage({
   filename: "bg-03.png",

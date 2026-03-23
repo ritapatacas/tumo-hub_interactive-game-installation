@@ -33,9 +33,12 @@ export function applyNoisePenalty(ctx, penalty) {
 
 export function showNoisePenalty(ctx, team, penalty) {
   ctx.ui.addTeamScore(team.teamName, team.score);
-  ctx.ui.showMessage(`Demasiado ruído! -${penalty} pontos.`, {
-    type: "error",
-    duration: 1500,
+  ctx.ui.showMessage("", {
+    dock: "top-left",
+    boxClassName: "ui-shadow-box--noise-penalty",
+    duration: 4500,
+    ariaLabel: `Demasiado ruído. Menos ${penalty} pts.`,
+    html: `DEMASIADO RUÍDO!<br>-${penalty} pts`,
   });
 }
 
@@ -70,8 +73,12 @@ export function getTopLeaderboard(teams, limit) {
     })
     .sort((a, b) => b.points - a.points);
 
-  if (typeof limit === "number") {
-    return list.slice(0, limit);
+  if (typeof limit === "number" && limit > 0) {
+    const sliced = list.slice(0, limit);
+    while (sliced.length < limit) {
+      sliced.push({ name: "", points: null });
+    }
+    return sliced;
   }
 
   return list;

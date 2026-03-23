@@ -4,7 +4,7 @@ import { showSelectedVideo } from "../../src/core/video.js";
 export let videoScreen = new Screen("video");
 
 videoScreen.setLayout({
-  align: { horizontal: "center", vertical: "top" },
+  align: { horizontal: "center", vertical: "center" },
   gap: 14,
 });
 

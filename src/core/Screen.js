@@ -41,8 +41,10 @@ export class Screen {
   }
 
   /**
-   * Dica no canto inferior direito do ecrã (fixa ao viewport). Omitir `text` ou usar string vazia para não mostrar.
-   * @param {{ text?: string, ariaLabel?: string }} opts
+   * Dica no canto inferior direito (fixa ao viewport). `text` é texto simples (`\n` = nova linha);
+   * opcionalmente `html` para conteúdo com marcação (ex.: cores); nesse caso usar `ariaLabel`.
+   * Omitir ou string vazia para não mostrar.
+   * @param {{ text?: string, html?: string, ariaLabel?: string, className?: string, inline?: boolean }} opts
    */
   setCornerHint(opts = {}) {
     this._steps.push(({ ui }) => ui.setCornerHint(opts));
@@ -172,7 +174,7 @@ export class Screen {
    * cria contraste com a imagem de fundo. Fechar com endShadowBox().
    * Tudo o que for adicionado entre beginShadowBox() e endShadowBox() fica
    * dentro da mesma caixa.
-   * @param {{ padding?: number | string, radius?: string, background?: string, marginTop?: number | string, marginBottom?: number | string }} opts
+   * @param {{ padding?: number | string, radius?: string, background?: string, marginTop?: number | string, marginBottom?: number | string, dock?: "bottom-right" }} opts
    */
   beginShadowBox(opts = {}) {
     this._steps.push(({ ui }) => ui.beginShadowBox(opts));
@@ -185,7 +187,7 @@ export class Screen {
     return this;
   }
 
-  /** @param {{ id?: string, placeholder?: string, actionOnEnter?: string, maxWidth?: number | string, align?: "stretch" | "center" | "left" | "right" }} opts */
+  /** @param {{ id?: string, placeholder?: string, actionOnEnter?: string, maxWidth?: number | string, align?: "stretch" | "center" | "left" | "right", fontSize?: number | string, color?: string }} opts */
   addInput(opts) {
     this._steps.push(({ ui }) => ui.addInput(opts));
     return this;

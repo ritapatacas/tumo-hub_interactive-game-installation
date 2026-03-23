@@ -1,6 +1,9 @@
 import { Screen } from "../../src/core/Screen.js";
 import { answerIsCorrect, recordAnswer, addTeamPoints } from "../../src/core/pointsHelpers.js";
 
+/** Duração das mensagens dock do quiz + atraso antes do leaderboard. */
+export const QUIZ_FEEDBACK_DOCK_MS = 4500;
+
 export let quizScreen = new Screen("quiz");
 
 
@@ -20,30 +23,54 @@ quizScreen.useDefaultQuiz({
   optionsLayout: "list",
 });
 
+/**
+ * @returns {{ leaderboardDelayMs: number }} milissegundos antes de navegar para o leaderboard.
+ */
 export function onQuizAnswered(ctx) {
   const info = recordAnswer(ctx);
   let isRight = answerIsCorrect(info.answer);
 
-  let msg;
   let roundPoints;
 
   if (isRight) {
     roundPoints = 10;
     if (info.hadWrongBefore) {
       roundPoints -= 2;
-      msg = "Correto! +" + roundPoints + " pontos (tinhas errado antes).";
-    } else {
-      msg = "Correto! +" + roundPoints + " pontos.";
     }
   } else {
     roundPoints = -1;
-    if (info.hadWrongBefore) {
-      msg = "Resposta errada novamente. -1 ponto.";
-    } else {
-      msg = "Resposta errada. -1 ponto.";
-    }
   }
 
   addTeamPoints(ctx, roundPoints);
-  ctx.ui.showMessage(msg, { type: isRight ? "success" : "error" });
+  if (isRight) {
+    const html = info.hadWrongBefore
+      ? `CORRETO!<br>+${roundPoints} pts<br>(tinhas errado antes)`
+      : `CORRETO!<br>+${roundPoints} pts`;
+    const ariaLabel = info.hadWrongBefore
+      ? `Correto. Mais ${roundPoints} pontos. Tinhas errado antes.`
+      : `Correto. Mais ${roundPoints} pontos.`;
+    ctx.ui.showMessage("", {
+      dock: "top-left",
+      boxClassName: "ui-shadow-box--docked-success",
+      duration: QUIZ_FEEDBACK_DOCK_MS,
+      ariaLabel,
+      html,
+    });
+    return { leaderboardDelayMs: QUIZ_FEEDBACK_DOCK_MS };
+  }
+
+  const ariaLabel = info.hadWrongBefore
+    ? "Resposta errada novamente. Menos 1 ponto."
+    : "Resposta errada. Menos 1 ponto.";
+  const html = info.hadWrongBefore
+    ? `RESPOSTA ERRADA!<br>-1 pt<br>(novamente)`
+    : `RESPOSTA ERRADA!<br>-1 pt`;
+  ctx.ui.showMessage("", {
+    dock: "top-left",
+    boxClassName: "ui-shadow-box--docked-error",
+    duration: QUIZ_FEEDBACK_DOCK_MS,
+    ariaLabel,
+    html,
+  });
+  return { leaderboardDelayMs: QUIZ_FEEDBACK_DOCK_MS };
 }

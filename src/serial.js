@@ -1,7 +1,7 @@
 /**
  * Web Serial API – leitura de inputs de porta serial (ex.: Arduino).
- * Formato: uma linha por botão pressionado — "RED", "BLUE", "YELLOW" ou "WHITE".
- * Mapeamento para opções do quiz: RED→0, BLUE→1, YELLOW→2, WHITE→3.
+ * Formato: uma linha por botão pressionado — "RED", "BLUE", "YELLOW", "WHITE" ou "GREEN".
+ * Mapeamento para opções do quiz: RED→0, BLUE→1, YELLOW→2, WHITE→3. GREEN→4 (extra; ecrãs podem tratar à parte).
  */
 
 let port = null;
@@ -12,8 +12,8 @@ let readLoopPromise = null;
 /** @type {Set<(index: number) => void>} */
 const buttonListeners = new Set();
 
-/** Linha do Arduino → índice da opção do quiz (0–3) */
-const LINE_TO_INDEX = { RED: 0, BLUE: 1, YELLOW: 2, WHITE: 3 };
+/** Linha do Arduino → índice da opção do quiz (0–3) ou 4 para GREEN (uso em ecrãs não-quiz) */
+const LINE_TO_INDEX = { RED: 0, BLUE: 1, YELLOW: 2, WHITE: 3, GREEN: 4 };
 
 export const serial = {
   /**
@@ -75,7 +75,7 @@ export const serial = {
 
   /**
    * Regista um callback chamado quando um botão é pressionado.
-   * @param {(optionIndex: number) => void} callback - índice da opção (0–3): red=0, blue=1, yellow=2, white=3
+   * @param {(optionIndex: number) => void} callback - índice: red=0, blue=1, yellow=2, white=3, green=4
    * @returns {() => void} função para remover o listener
    */
   onButtonPress(callback) {

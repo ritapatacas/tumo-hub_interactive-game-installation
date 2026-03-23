@@ -11,7 +11,6 @@ import { quizScreen } from "./screens/quiz.screen.js";
 import { quietScreen } from "./screens/quiet.screen.js";
 import { videoScreen } from "./screens/video.screen.js";
 import { attentionScreen } from "./screens/attention.screen.js";
-import { preGalleryScreen } from "./screens/pre-gallery.screen.js";
 import { leaderboardScreen } from "./screens/leaderboard.screen.js";
 import { tutorialScreen } from "./screens/tutorial.screen.js";
 import { waitingScreen } from "./screens/waiting.screen.js";
@@ -33,10 +32,25 @@ function openVideoFromGalleryWithPayload(ctx) {
   }, 5000);
 }
 
+function advanceFromAttentionToVideo(ctx) {
+  if (ctx.state.__attentionTimerId) {
+    clearTimeout(ctx.state.__attentionTimerId);
+    ctx.state.__attentionTimerId = null;
+  }
+  ctx.goTo("video");
+}
+
+function advanceFromQuietToQuiz(ctx) {
+  if (ctx.state.__quietTimerId) {
+    clearTimeout(ctx.state.__quietTimerId);
+    ctx.state.__quietTimerId = null;
+  }
+  ctx.goTo("quiz");
+}
+
 export const screens = [
   homeScreen,
   tutorialScreen,
-  preGalleryScreen,
   galleryScreen,
   blindGalleryScreen,
   quietScreen,
@@ -50,7 +64,6 @@ export const screens = [
 export const actions = {
   goHome: ({ goTo }) => goTo("home"),
   goTutorial: ({ goTo }) => goTo("tutorial"),
-  goPreGallery: ({ goTo }) => goTo("preGallery"),
   goGallery: (ctx) => {
     ctx.state.gallerySeed = (Math.random() * 0x7fffffff) | 0;
     ctx.state.galleryEpoch = Date.now();
@@ -72,6 +85,12 @@ export const actions = {
   goLeaderboard: ({ goTo }) => goTo("leaderboard"),
   videoEndedAdvance: ({ actions, ...ctx }) => actions.goQuiz(ctx),
 
+  /** Enter no ecrã attention: mesmo efeito que o fim dos 5 s → vídeo. */
+  advanceFromAttention: (ctx) => advanceFromAttentionToVideo(ctx),
+
+  /** Enter no ecrã quiet: mesmo efeito que o fim dos 10 s → quiz. */
+  advanceFromQuiet: (ctx) => advanceFromQuietToQuiz(ctx),
+
   /** Conecta à porta serial (Arduino). Cada botão: red→opção 0, blue→1, yellow→2, white→3 no quiz. */
   connectArduino: async (ctx) => {
     if (!serial.isSupported()) {
@@ -87,17 +106,25 @@ export const actions = {
   },
 
   saveTeamName: (ctx) => {
-    persistStateTeam(ctx);
+    const name = persistStateTeam(ctx);
+    if (!name) {
+      ctx.ui.showMessage("Escreve o nome da equipa.", { type: "info" });
+      return;
+    }
     ctx.goTo("tutorial");
   },
 
   pointsPerCorrect: POINTS_PER_CORRECT,
 
   quizAnswered: (ctx) => {
-    onQuizAnswered(ctx);
+    const { leaderboardDelayMs = 0 } = onQuizAnswered(ctx);
     ctx.state.gallerySeed = (Math.random() * 0x7fffffff) | 0;
     ctx.state.galleryEpoch = Date.now();
-    ctx.goTo("gallery");
+    if (leaderboardDelayMs > 0) {
+      setTimeout(() => ctx.goTo("leaderboard"), leaderboardDelayMs);
+    } else {
+      ctx.goTo("leaderboard");
+    }
   },
 
   // Timeout do quiz: sem resposta até ao fim => sai com 0 pontos neste round.
@@ -109,6 +136,7 @@ export const actions = {
   },
 
   noisePenalty: (ctx) => {
+    if (ctx.screen !== "quiz") return;
     const penalty = POINTS_NOISE_PENALTY;
     const team = applyNoisePenalty(ctx, penalty);
     showNoisePenalty(ctx, team, penalty);
@@ -150,8 +178,23 @@ export const actions = {
   /** Exemplo no template: mostra toast ao responder ao quiz estático. */
   templateQuizAnswer: (ctx) => {
     const payload = ctx.payload ?? {};
-    const msg = payload.isCorrect ? "Resposta certa!" : "Resposta errada.";
-    ctx.ui.showMessage(msg, { type: payload.isCorrect ? "success" : "error", duration: 2000 });
+    if (payload.isCorrect) {
+      ctx.ui.showMessage("", {
+        dock: "top-left",
+        boxClassName: "ui-shadow-box--docked-success",
+        duration: 4500,
+        ariaLabel: "Resposta certa.",
+        html: "RESPOSTA CERTA!",
+      });
+    } else {
+      ctx.ui.showMessage("", {
+        dock: "top-left",
+        boxClassName: "ui-shadow-box--docked-error",
+        duration: 4500,
+        ariaLabel: "Resposta errada.",
+        html: "RESPOSTA ERRADA!",
+      });
+    }
   },
 
   /** Exemplo no template: ao carregar Enter no input. */

@@ -80,10 +80,11 @@ html, body {
   user-select: none;
 }
 
-/* Dica opcional (ex.: “press any button…”), canto inferior direito */
-.ui-corner-hint-badge {
+/* Dica opcional (ex.: “press any button…”), canto inferior direito;
+   pontuação da equipa: mesmo formato (Press Start 2P, amarelo), canto superior direito */
+.ui-corner-hint-badge,
+.ui-team-score {
   position: fixed;
-  bottom: 24px;
   right: 24px;
   z-index: 1000;
   max-width: min(320px, calc(100vw - 48px));
@@ -104,19 +105,142 @@ html, body {
   user-select: none;
 }
 
-/* Pontuação da equipa (floating, canto superior direito – não interfere no layout) */
-.ui-team-score {
+.ui-corner-hint-badge {
+  bottom: 24px;
+}
+
+/* Dica mais larga (ex.: home — duas linhas com símbolos) */
+.ui-corner-hint-badge--wide {
+  max-width: min(520px, calc(100vw - 48px));
+}
+
+/* Shadow box ancorada ao canto inferior direito (beginShadowBox({ dock: "bottom-right" })) */
+.ui-shadow-box--dock-br {
   position: fixed;
-  top: 24px;
   right: 24px;
-  z-index: 1000;
-  padding: 8px 14px;
-  border-radius: 12px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--text);
+  bottom: 24px;
+  z-index: 900;
+  width: fit-content;
+  max-width: min(520px, calc(100vw - 48px));
+  min-width: 0;
+  box-sizing: border-box;
+  align-items: flex-end;
+}
+
+/* Aviso de ruído (showMessage + dock top-left): canto superior esquerdo, estilo da dica pixel */
+.ui-shadow-box--dock-tl {
+  position: fixed;
+  left: 24px;
+  top: 24px;
+  z-index: 950;
+  width: fit-content;
+  max-width: min(520px, calc(100vw - 48px));
+  min-width: 0;
+  box-sizing: border-box;
+  align-items: flex-start;
+}
+
+.ui-shadow-box--dock-tl .ui-corner-hint-badge--inline {
+  width: max-content;
+  max-width: 100%;
+  align-self: flex-start;
+}
+
+.ui-corner-hint-badge--dock-tl {
+  text-align: left;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+}
+
+.ui-shadow-box--dock-tl:not(.ui-shadow-box--noise-penalty):not(.ui-shadow-box--docked-success):not(.ui-shadow-box--docked-error)
+  .ui-corner-hint-badge--dock-tl {
+  color: #eeb628;
+}
+
+/* Ruído + resposta errada no quiz: caixa vermelha, texto branco */
+.ui-shadow-box--noise-penalty,
+.ui-shadow-box--docked-error {
+  background: rgba(185, 32, 42, 0.96) !important;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.38);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.ui-shadow-box--noise-penalty .ui-corner-hint-badge--dock-tl,
+.ui-shadow-box--docked-error .ui-corner-hint-badge--dock-tl {
+  color: #fcfcfc;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* Resposta certa no quiz: mesmo formato que o aviso de ruído, caixa verde */
+.ui-shadow-box--docked-success {
+  background: rgba(28, 110, 62, 0.96) !important;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.38);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.ui-shadow-box--docked-success .ui-corner-hint-badge--dock-tl {
+  color: #fcfcfc;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.ui-corner-hint-dot--red {
+  color: #ff3b3b;
+}
+
+/* Dentro da dock-br: a dica não estica à largura fixa — a caixa acompanha o texto */
+.ui-shadow-box--dock-br .ui-corner-hint-badge--inline {
+  width: max-content;
+  max-width: 100%;
+  align-self: flex-end;
+}
+
+/* Dica no fluxo do ecrã (ex.: dentro de .ui-shadow-box), não fixa ao viewport */
+.ui-corner-hint-badge--inline {
+  position: static;
+  inset: auto;
+  right: auto;
+  bottom: auto;
+  max-width: 100%;
+  width: 100%;
+  align-self: stretch;
+  box-sizing: border-box;
+}
+
+.ui-corner-hint-badge--inline.ui-corner-hint-badge--wide {
+  max-width: 100%;
+}
+
+/* Símbolos de cor na dica (ex.: home — botões físicos branco / azul) */
+.ui-corner-hint-dot {
+  display: inline-block;
+  position: relative;
+  top: -0.22em;
+  line-height: 1;
+  margin: 0 0.12em;
+  vertical-align: baseline;
+}
+
+.ui-corner-hint-dot--white {
+  color: #fcfdf6;
+}
+
+.ui-corner-hint-dot--blue {
+  color: #0854ac;
+}
+
+.ui-team-score {
+  top: 24px;
+  text-transform: uppercase;
+}
+
+.ui-team-score > p {
+  margin: 0;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    0 2px 6px rgba(0, 0, 0, 0.35);
 }
 
 /* Barra: nome/pontos + botões em coluna (ex.: galeria) */
@@ -129,7 +253,7 @@ html, body {
   flex-direction: column;
   align-items: flex-end;
   gap: 10px;
-  max-width: min(260px, calc(100vw - 48px));
+  max-width: min(320px, calc(100vw - 48px));
 }
 
 .ui-team-score-stack > .ui-team-score {
@@ -401,11 +525,25 @@ html, body {
   width: min(560px, 92vw);
   box-sizing: border-box;
   padding: 12px 14px;
-  border-radius: 16px;
+  border-radius: 1px;
   border: 1px solid var(--border);
   background: var(--input-bg);
-  color: var(--muted);
+  color: #000;
   outline: none;
+  font-family: "Press Start 2P", monospace;
+  font-size: clamp(20px, 2.5vw, 16px);
+  line-height: 1.65;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.input::placeholder {
+  color: var(--muted);
+  opacity: 1;
+  font-family: "Press Start 2P", monospace;
+  font-size: inherit;
+  text-align: center;
+  text-transform: uppercase;
 }
 
 /* Imagem (addImage): assets/images, widthPercent, align center | left | right */
@@ -449,6 +587,101 @@ html, body {
   box-sizing: border-box;
   align-self: stretch;
   margin: 2px 0 0;
+  min-height: 0;
+}
+
+/* Quiz / quiet (P1): fila com countdown + barra de ruído — sem isto a coluna fica tão baixa
+   como o texto à esquerda e height:100% da barra colapsa (P2 vs P1 diferente). */
+.ui-flex-row:has(.noise-level-wrap) {
+  min-height: min(440px, 62vh);
+  flex-wrap: nowrap !important; /* JS define wrap por omissão; aqui força imagem | texto | barra na mesma linha */
+}
+
+/* P1 quiet só com shell: não esticar a fila à altura da barra ativa (evita ~440px de altura à toa) */
+.ui-flex-row--quiet-body:has(.noise-level-wrap--shell):not(:has(.noise-level-wrap:not(.noise-level-wrap--shell))) {
+  min-height: 0;
+  align-items: flex-start;
+}
+
+.ui-flex-row--quiet-body:has(.noise-level-wrap--shell):not(:has(.noise-level-wrap:not(.noise-level-wrap--shell)))
+  .ui-flex-section--quiet-p1-slot
+  .noise-level-wrap--shell
+  .noise-level-outer {
+  height: min(200px, 34vh);
+  min-height: 100px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+/* Quiet: imagem | texto [| barra] — a barra monta depois; sem classe a imagem ficava a 100%
+   até existir .noise-level-wrap (:has não batia). */
+.ui-flex-row--quiet-body {
+  flex-wrap: nowrap !important;
+}
+/* Só imagem sem slot (evita ocupar a fila inteira). Com slot — como attention — o tamanho vem do addImage. */
+.ui-flex-row--quiet-body
+  > .ui-flex-section:has(> .ui-image-wrap:only-child)
+  > .ui-image-wrap:not(.ui-image-wrap--slot) {
+  width: auto;
+  max-width: min(240px, 42vw);
+}
+.ui-flex-row--quiet-body
+  > .ui-flex-section:has(> .ui-image-wrap:only-child)
+  > .ui-image-wrap:not(.ui-image-wrap--slot)
+  .ui-image {
+  width: min(200px, 38vw) !important;
+  max-width: 100%;
+  height: auto !important;
+}
+
+/* P1 quiet: a barra deixava de se mover porque .noise-level-wrap era width:100% + align-items:center,
+   centrando os 24px no meio da coluna (larga pelo countdown). Alinhar à esquerda da coluna = mais perto do texto. */
+.ui-flex-row--quiet-body .ui-flex-section--quiet-p1-slot {
+  /* Mesmo deslocamento no contador e na .noise-level-outer para ficarem na mesma vertical */
+  --quiet-p1-meter-shift: -20px;
+}
+
+.ui-flex-row--quiet-body .ui-flex-section--quiet-p1-slot .noise-level-wrap,
+.ui-flex-row--quiet-body .ui-flex-section--quiet-p1-slot .noise-level-wrap--shell {
+  align-items: flex-start;
+  align-self: flex-start;
+  width: auto;
+  max-width: 100%;
+  margin-left: var(--quiet-p1-meter-shift);
+}
+
+.ui-flex-row--quiet-body .ui-flex-section--quiet-p1-slot .noise-level-outer {
+  margin-top: 24px;
+  margin-left: 0;
+  margin-bottom: 40px;
+}
+
+.ui-flex-row--quiet-body .ui-flex-section--quiet-p1-slot .ui-quiz-countdown {
+  align-items: flex-start;
+  align-self: flex-start;
+  width: auto;
+  margin-left: var(--quiet-p1-meter-shift);
+  box-sizing: border-box;
+}
+
+/* Coluna da mesma largura que a barra (24px): rótulo + número alinhados à barra */
+.ui-flex-row--quiet-body .ui-flex-section--quiet-p1-slot .ui-quiz-countdown-label {
+  width: 24px;
+  text-align: center;
+  font-size: 10px;
+  line-height: 1.15;
+  box-sizing: border-box;
+}
+
+.ui-flex-row--quiet-body .ui-flex-section--quiet-p1-slot .ui-quiz-countdown-value {
+  width: 24px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* Colunas da row podem encolher / participar na altura (quiz + ruído lado a lado) */
+.ui-flex-row > .ui-flex-section {
+  min-height: 0;
 }
 
 /* Dentro da row, sem margem por baixo da imagem (evita folga antes do countdown, etc.) */
@@ -463,32 +696,34 @@ html, body {
 
 /* Gallery */
 .gallery-grid {
-  width: 85%;
-  max-width: 65vw;
-  max-height: 55vh;
+  width: 74%;
+  max-width: 56vw;
+  max-height: 52vh;
   overflow-y: auto;
   box-sizing: border-box;
-  padding: 5px;
+  padding: 10px;
   display: grid;
   grid-auto-rows: auto;
-  gap: 5px;
+  /* Um único valor = mesmo espaço entre linhas e entre colunas */
+  gap: 16px;
   align-content: start;
+  margin-top: -90px;
 }
 
 .gallery-card {
   box-sizing: border-box;
   min-width: 0;
   min-height: 0;
-  width: 85%;
-  max-width: 85%;
+  width: 100%;
+  max-width: 100%;
   border: 1px solid var(--muted);
   background: var(--muted);
-  padding: 5px;
-  margin: 5px;
+  padding: 4px;
+  margin: 0;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 5px;
+  gap: 4px;
   cursor: pointer;
   text-align: center;
   color: var(--text);
@@ -511,7 +746,7 @@ html, body {
   justify-content: center;
   align-items: center;
   background: rgba(60 60 60 / 0.28);
-  padding: 10px;
+  padding: 8px;
 }
 
 .gallery-thumb {
@@ -521,14 +756,14 @@ html, body {
   min-height: 0;
   width: 100%;
   height: auto;
-  max-height: 100%;
+  max-height: 90%;
   object-fit: cover;
   background: var(--thumb-bg);
 }
 
 .gallery-title {
   flex-shrink: 0;
-  font-size: 17px;
+  font-size: 15px;
   color: var(--muted);
   text-align: center;
   width: 100%;
@@ -542,7 +777,7 @@ html, body {
 
 .gallery-card--blind .gallery-title {
   color: var(--text);
-  font-size: 21px;
+  font-size: 18px;
   font-weight: 700;
 }
 
@@ -580,13 +815,18 @@ html, body {
   object-fit: cover;
 }
 
-/* Quiz – theme.quiz.gap: afterTitle, afterQuestion, betweenOptions */
+/* Quiz – theme.quiz.gap: afterTitle, afterQuestion, betweenOptions
+   Sem flex 1 + basis 0 nas opções: com altura do cartão em "auto", isso colapsava a lista a 0. */
 .quiz-card {
+  box-sizing: border-box;
   width: min(380px, 44vw);
+  max-height: 85vh;
+  overflow-y: auto;
   margin-top: var(--quiz-gap-after-title, 16px);
   border-radius: 1px;
   padding: 16px;
   padding-bottom: 0px;
+  font-family: var(--quiz-font-family, var(--font));
 }
 
 /* When quiz + noise are shown side-by-side */
@@ -599,7 +839,8 @@ html, body {
 /* Pergunta: customizável em theme.quiz.question */
 .quiz-question,
 #quiz-question {
-  font-size: var(--quiz-question-font-size, var(--title-size, 20px));
+  font-family: var(--quiz-question-font-family, var(--quiz-font-family, var(--font)));
+  font-size: var(--quiz-question-font-size, var(--title-size, 30px));
   color: var(--quiz-question-color, var(--text));
   font-weight: 800;
   margin-bottom: var(--quiz-gap-after-question, 12px);
@@ -608,8 +849,7 @@ html, body {
 .quiz-options {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--quiz-gap-between-options, 10px);
-  
+  gap: var(--quiz-gap-between-options, 22px);
 }
 
 /* 2x2: use optionsLayout: "grid" em useDefaultQuiz */
@@ -629,7 +869,8 @@ html, body {
   padding: 10px 12px;
   cursor: pointer;
   text-align: left;
-  font-size: 18px;
+  font-size: 28px;
+  font-family: var(--quiz-option-font-family, var(--quiz-font-family, var(--font)));
 }
 
 /* Texto das opções: mesma cor do restante do texto */
@@ -795,6 +1036,14 @@ html, body {
   gap: 0px;
   flex: 1 1 auto;
   min-height: 0; /* allow inner bar to shrink within flex layout */
+  align-self: stretch;
+  width: 100%;
+}
+
+/* Reserva o mesmo espaço que a barra ativa; substituída por addNoiseLevel() no quiz */
+.noise-level-wrap--shell {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .noise-level-label {
@@ -888,19 +1137,19 @@ html, body {
 
 /* Video */
 .video {
-  width: min(820px, 88vw);
-  padding-top: 42px;
+  width: min(1080px, 93vw);
+  padding-top: 0px;
   height: auto;
-  border-radius: 12px;
+  border-radius: 3px;
 }
 
-/* Leaderboard */
+/* Leaderboard: 2 colunas × 5 linhas (top 10), fluxo em coluna */
 .leaderboard-card {
   display: inline-block;
   width: auto;
-  max-width: min(720px, 92vw);
-  border-radius: 16px;
-  padding: 16px;
+  max-width: min(1080px, 96vw);
+  border-radius: 1px;
+  padding: 4px;
 }
 
 .leaderboard-list {
@@ -909,34 +1158,67 @@ html, body {
   gap: 8px;
 }
 
+.leaderboard-list.leaderboard-list--two-columns {
+  display: grid;
+  grid-template-rows: repeat(5, auto);
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 10px 92px;
+  align-items: stretch;
+}
+
 .leaderboard-row {
   display: grid;
-  grid-template-columns: auto minmax(200px, 1fr) auto;
+  grid-template-columns: auto minmax(160px, 1fr) auto;
   align-items: center;
-  gap: 10px;
-  padding: 6px 8px;
+  gap: 12px 16px;
+  padding: 4px 28px;
   border-radius: 10px;
   background: rgba(0 0 0 / 0.21);
+  min-height: 3.15rem;
+}
+
+.leaderboard-row--empty {
+  background: rgba(0 0 0 / 0.12);
+}
+
+.leaderboard-row--empty .leaderboard-rank {
+  opacity: 0.45;
 }
 
 .leaderboard-rank {
-  font-weight: 600;
-  opacity: 0.8;
+  font-size: clamp(1.45rem, 2.4vw, 2rem);
+  font-weight: 700;
+  opacity: 0.85;
+  min-width: 2.75ch;
+  font-variant-numeric: tabular-nums;
 }
 
 .leaderboard-name {
-  font-size: 14px;
+  font-size: clamp(1.45rem, 2.35vw, 1.95rem);
+  line-height: 1.1;
+  text-transform: uppercase;
 }
 
 .leaderboard-points {
-  font-size: 14px;
+  font-size: clamp(1.45rem, 2.35vw, 1.95rem);
   font-weight: 600;
   text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
-.leaderboard-empty {
-  font-size: 14px;
-  opacity: 0.8;
+@media (max-width: 640px) {
+  .leaderboard-list.leaderboard-list--two-columns {
+    grid-template-rows: repeat(10, auto);
+    grid-auto-flow: row;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .leaderboard-card {
+    padding: 16px;
+  }
 }
 
 body[data-role="p1"] .btn,

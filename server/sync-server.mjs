@@ -74,7 +74,7 @@ wss.on("connection", (ws) => {
       if (ws._role !== "p2") return;
       const sessionId = ws._sessionId || String(msg.sessionId || "default");
       const session = ensureSession(sessionId);
-      session.screen = String(msg.screen || "attention");
+      session.screen = String(msg.screen || "home");
       session.payload = toJsonSafe(msg.payload) ?? null;
       session.sharedState = toJsonSafe(msg.sharedState) ?? {};
       broadcastState(sessionId);

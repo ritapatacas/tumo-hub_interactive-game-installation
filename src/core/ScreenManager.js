@@ -32,6 +32,7 @@ export class ScreenManager {
         payload,
         actions: this.actions,
         persistTeams,
+        screen: this._current?.name ?? null,
       });
     });
   }

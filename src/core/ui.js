@@ -10,6 +10,18 @@ function clamp01(n) {
   return Math.max(0, Math.min(1, n));
 }
 
+/** Texto visível no botão do quiz: sem letras A–D isoladas, sem "Opção A", sem prefixo "A. " / "B) " etc. */
+function quizOptionDisplayLabel(raw) {
+  const t = String(raw ?? "").trim();
+  if (!t) return "";
+  if (/^[a-d]$/i.test(t)) return "";
+  if (/^opção\s+[a-d]$/i.test(t)) return "";
+  if (/^option\s+[a-d]$/i.test(t)) return "";
+  const withoutLeading = t.replace(/^[a-d]\s*[\).\:\-–—]\s*/i, "").trim();
+  if (withoutLeading !== t) return withoutLeading;
+  return t;
+}
+
 function justifyFromVAlign(vAlign) {
   if (vAlign === "top") return "flex-start";
   if (vAlign === "bottom") return "flex-end";
@@ -65,6 +77,8 @@ export class UI {
     this._teamScoreEl = null;
     this._playerRoleBadgeEl = null;
     this._cornerHintBadgeEl = null;
+    this._dockedMessageEl = null;
+    this._dockedMessageTimer = null;
     this._gallerySpotlightInterval = null;
 
     this._screenEl = null;
@@ -152,6 +166,14 @@ export class UI {
     if (this._cornerHintBadgeEl) {
       this._cornerHintBadgeEl.remove();
       this._cornerHintBadgeEl = null;
+    }
+    if (this._dockedMessageTimer) {
+      clearTimeout(this._dockedMessageTimer);
+      this._dockedMessageTimer = null;
+    }
+    if (this._dockedMessageEl) {
+      this._dockedMessageEl.remove();
+      this._dockedMessageEl = null;
     }
     if (this._gallerySpotlightInterval) {
       clearInterval(this._gallerySpotlightInterval);
@@ -259,31 +281,49 @@ export class UI {
     const role = document.body.dataset.role === "p1" ? "p1" : "p2";
     const badge = document.createElement("div");
     badge.className = "ui-player-role-badge";
-    badge.textContent = role === "p1" ? "Player 1" : "Player 2";
+    badge.textContent = role === "p1" ? "PLAYER 1" : "PLAYER 2";
     badge.setAttribute("aria-label", badge.textContent);
     document.body.appendChild(badge);
     this._playerRoleBadgeEl = badge;
   }
 
   /**
-   * Texto fixo no canto inferior direito (ex.: “press any button…”). Só em ecrãs que chamem isto.
-   * Quebras de linha: `\n` no `text` (CSS `white-space: pre-line` na classe).
-   * @param {{ text?: string, ariaLabel?: string }} opts — sem `text` ou string vazia: remove o badge.
+   * Dica no canto inferior direito. `text` é texto simples (`\n` → quebra com `white-space: pre-line`).
+   * Se `html` estiver definido (string não vazia após trim), usa `innerHTML` em vez de `text` (ex.: spans com cor).
+   * Omitir ambos ou vazios = não mostrar.
+   * @param {{ text?: string, html?: string, ariaLabel?: string, className?: string, inline?: boolean }} opts
+   *   Com `html`, define `ariaLabel` para acessibilidade (texto plano equivalente).
+   *   `className` – classes extra no badge (ex.: `ui-corner-hint-badge--wide`).
+   *   `inline` – se true, coloca a dica no contentor atual (ex.: dentro de `beginShadowBox`), em fluxo normal;
+   *   por omissão fica `position: fixed` no canto inferior direito do viewport.
    */
-  setCornerHint({ text, ariaLabel } = {}) {
+  setCornerHint({ text, html, ariaLabel, className, inline } = {}) {
     if (this._cornerHintBadgeEl) {
       this._cornerHintBadgeEl.remove();
       this._cornerHintBadgeEl = null;
     }
+    const htmlStr = html != null ? String(html).trim() : "";
     const t = text == null ? "" : String(text).trim();
-    if (!t) return;
+    if (!htmlStr && !t) return;
 
     const el = document.createElement("div");
-    el.className = "ui-corner-hint-badge";
-    el.textContent = t;
+    el.className = ["ui-corner-hint-badge", className, inline ? "ui-corner-hint-badge--inline" : ""]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
     el.setAttribute("aria-live", "polite");
-    el.setAttribute("aria-label", ariaLabel ?? t);
-    document.body.appendChild(el);
+    if (htmlStr) {
+      el.innerHTML = htmlStr;
+      el.setAttribute("aria-label", ariaLabel ?? "");
+    } else {
+      el.textContent = t;
+      el.setAttribute("aria-label", ariaLabel ?? t);
+    }
+    if (inline) {
+      this._ensureContent().appendChild(el);
+    } else {
+      document.body.appendChild(el);
+    }
     this._cornerHintBadgeEl = el;
   }
 
@@ -313,13 +353,16 @@ export class UI {
    *   hGap?: number,
    *   justify?: "center" | "flex-start" | "flex-end" | "space-between",
    *   align?: "center" | "stretch"
+   *   className?: string — classe extra no div da row (ex.: para CSS específico do ecrã).
    * }} opts
    *   gap – espaço vertical (e horizontal se `hGap` não for usado). Valor por omissão: 8.
    *   hGap – espaço horizontal entre colunas (flex sections); quando definido, `gap` é só row-gap.
    */
   beginFlexRow(opts = {}) {
     const row = document.createElement("div");
-    row.className = "ui-flex-row";
+    row.className = opts.className
+      ? `ui-flex-row ${opts.className}`
+      : "ui-flex-row";
     row.style.display = "flex";
     row.style.flexDirection = "row";
     row.style.flexWrap = "wrap";
@@ -351,16 +394,25 @@ export class UI {
    *   paddingRight?: number | string,
    *   gap?: number,
    *   flex?: number | string | false,
+   *   className?: string,
+   *   minWidth?: number | string,
+   *   marginTop?: number | string,
+   *   marginBottom?: number | string,
+   *   marginLeft?: number | string,
+   *   marginRight?: number | string,
    * }} opts
    *   flex – false desativa o crescimento; string/number passa direto a CSS flex.
    *   justify – eixo principal da coluna (vertical): p.ex. center para centrar o bloco na altura da célula (com row align stretch).
+   *   minWidth – número em px ou valor CSS; evita minWidth:0 da row quando definido.
    */
   beginFlexSection(opts = {}) {
     const parent = this._ensureContent();
     const inFlexRow = parent.classList.contains("ui-flex-row");
 
     const section = document.createElement("div");
-    section.className = "ui-flex-section";
+    section.className = opts.className
+      ? `ui-flex-section ${opts.className}`
+      : "ui-flex-section";
 
     const align = opts.align ?? "left";
     section.style.display = "flex";
@@ -385,13 +437,29 @@ export class UI {
     }
 
     if (inFlexRow || (opts.flex != null && opts.flex !== false)) {
-      section.style.minWidth = "0";
+      if (opts.minWidth === undefined) {
+        section.style.minWidth = "0";
+      }
+    }
+
+    if (opts.minWidth !== undefined) {
+      section.style.minWidth =
+        typeof opts.minWidth === "number" ? opts.minWidth + "px" : String(opts.minWidth);
     }
 
     if (opts.paddingRight !== undefined) {
       section.style.paddingRight =
         typeof opts.paddingRight === "number" ? opts.paddingRight + "px" : String(opts.paddingRight);
     }
+
+    const setSectionMargin = (v, prop) => {
+      if (v === undefined) return;
+      section.style[prop] = typeof v === "number" ? `${v}px` : String(v);
+    };
+    setSectionMargin(opts.marginTop, "marginTop");
+    setSectionMargin(opts.marginBottom, "marginBottom");
+    setSectionMargin(opts.marginLeft, "marginLeft");
+    setSectionMargin(opts.marginRight, "marginRight");
 
     parent.appendChild(section);
     this._containerStack.push(section);
@@ -406,11 +474,13 @@ export class UI {
    * Abre uma "shadow box": um card translúcido que agrupa vários elementos
    * (texto, botões, imagens, etc.) para criar contraste com a imagem de fundo.
    * Fechar com endShadowBox().
-   * @param {{ padding?: number | string, radius?: string, background?: string, marginTop?: number | string, marginBottom?: number | string }} opts
+   * @param {{ padding?: number | string, radius?: string, background?: string, marginTop?: number | string, marginBottom?: number | string, dock?: "bottom-right" }} opts
+   *   `dock: "bottom-right"` — caixa fixa no canto inferior direito do viewport (fora do fluxo centrado do ecrã).
    */
   beginShadowBox(opts = {}) {
     const box = document.createElement("div");
-    box.className = "ui-shadow-box";
+    const dockBr = opts.dock === "bottom-right";
+    box.className = "ui-shadow-box" + (dockBr ? " ui-shadow-box--dock-br" : "");
 
     const themeRadius = this.theme?.radius?.md ?? "16px";
     const padding = opts.padding ?? 20;
@@ -421,18 +491,21 @@ export class UI {
     box.style.flexDirection = "column";
     box.style.gap = this._contentEl ? this._contentEl.style.gap || "14px" : "14px";
     box.style.padding = typeof padding === "number" ? padding + "px" : padding;
-    if (opts.marginTop !== undefined) {
-      box.style.marginTop = typeof opts.marginTop === "number" ? opts.marginTop + "px" : String(opts.marginTop);
-    }
-    if (opts.marginBottom !== undefined) {
-      box.style.marginBottom = typeof opts.marginBottom === "number" ? opts.marginBottom + "px" : String(opts.marginBottom);
+    if (!dockBr) {
+      if (opts.marginTop !== undefined) {
+        box.style.marginTop = typeof opts.marginTop === "number" ? opts.marginTop + "px" : String(opts.marginTop);
+      }
+      if (opts.marginBottom !== undefined) {
+        box.style.marginBottom = typeof opts.marginBottom === "number" ? opts.marginBottom + "px" : String(opts.marginBottom);
+      }
     }
     box.style.borderRadius = radius;
     box.style.backgroundColor = background;
     box.style.backdropFilter = "blur(1.5px)";
     box.style.boxShadow = "0 50px 125px rgba(0, 0, 0, 0.40)";
 
-    this._ensureContent().appendChild(box);
+    const parent = dockBr ? this.overlays.root : this._ensureContent();
+    parent.appendChild(box);
     this._containerStack.push(box);
   }
 
@@ -697,15 +770,21 @@ export class UI {
   }
 
   /**
-   * @param {{ id?: string, placeholder?: string, actionOnEnter?: string, maxWidth?: number | string, align?: "stretch" | "center" | "left" | "right" }} opts
+   * @param {{ id?: string, placeholder?: string, actionOnEnter?: string, maxWidth?: number | string, align?: "stretch" | "center" | "left" | "right", fontSize?: number | string, color?: string }} opts
    *   `align` no eixo da shadow box / coluna: centra o campo quando é mais estreito que o contentor.
    */
-  addInput({ id, placeholder = "", actionOnEnter, maxWidth, align = "stretch" } = {}) {
+  addInput({ id, placeholder = "", actionOnEnter, maxWidth, align = "stretch", fontSize, color } = {}) {
     const input = document.createElement("input");
     input.type = "text";
     input.placeholder = placeholder;
 
     input.className = "input";
+    if (color != null) {
+      input.style.color = css(color);
+    }
+    if (fontSize != null) {
+      input.style.fontSize = typeof fontSize === "number" ? `${fontSize}px` : String(fontSize);
+    }
     if (maxWidth != null) input.style.maxWidth = typeof maxWidth === "number" ? `${maxWidth}px` : String(maxWidth);
     if (align === "center") input.style.alignSelf = "center";
     else if (align === "left") input.style.alignSelf = "flex-start";
@@ -880,7 +959,9 @@ export class UI {
 
       const label = document.createElement("span");
       label.className = "quiz-option-label";
-      label.textContent = opt;
+      const displayLabel = quizOptionDisplayLabel(opt);
+      label.textContent = displayLabel;
+      btn.setAttribute("aria-label", displayLabel || `Opção ${idx + 1}`);
 
       btn.appendChild(dot);
       btn.appendChild(label);
@@ -966,41 +1047,45 @@ export class UI {
     this._ensureContent().appendChild(video);
   }
 
-  addLeaderboard({ teams = [] } = {}) {
+  addLeaderboard({ teams = [], slotCount = 10 } = {}) {
+    const slots = Math.max(1, Math.min(100, Number(slotCount) || 10));
     const card = document.createElement("div");
     card.className = "leaderboard-card";
 
     const list = document.createElement("div");
-    list.className = "leaderboard-list";
+    list.className = "leaderboard-list leaderboard-list--two-columns";
 
-    if (!teams || teams.length === 0) {
-      const empty = document.createElement("div");
-      empty.className = "leaderboard-empty";
-      empty.textContent = "Ainda não há equipas com pontos.";
-      list.appendChild(empty);
-    } else {
-      teams.forEach((team, idx) => {
-        const row = document.createElement("div");
-        row.className = "leaderboard-row";
-
-        const rank = document.createElement("div");
-        rank.className = "leaderboard-rank";
-        rank.textContent = String(idx + 1).padStart(2, "0");
-
-        const name = document.createElement("div");
-        name.className = "leaderboard-name";
-        name.textContent = team.name || "Equipa";
-
-        const points = document.createElement("div");
-        points.className = "leaderboard-points";
-        points.textContent = `${Number(team.points || 0)} pts`;
-
-        row.appendChild(rank);
-        row.appendChild(name);
-        row.appendChild(points);
-        list.appendChild(row);
-      });
+    const rows = [...teams];
+    while (rows.length < slots) {
+      rows.push({ name: "", points: null });
     }
+    rows.splice(slots);
+
+    rows.forEach((team, idx) => {
+      const empty =
+        !team ||
+        (String(team.name ?? "").trim() === "" &&
+          (team.points === null || team.points === undefined));
+      const row = document.createElement("div");
+      row.className = "leaderboard-row" + (empty ? " leaderboard-row--empty" : "");
+
+      const rank = document.createElement("div");
+      rank.className = "leaderboard-rank";
+      rank.textContent = String(idx + 1).padStart(2, "0");
+
+      const name = document.createElement("div");
+      name.className = "leaderboard-name";
+      name.textContent = empty ? "\u00a0" : team.name || "Equipa";
+
+      const points = document.createElement("div");
+      points.className = "leaderboard-points";
+      points.textContent = empty ? "\u00a0" : `${Number(team.points || 0)} pts`;
+
+      row.appendChild(rank);
+      row.appendChild(name);
+      row.appendChild(points);
+      list.appendChild(row);
+    });
 
     card.appendChild(list);
     this._ensureContent().appendChild(card);
@@ -1017,8 +1102,8 @@ export class UI {
     this.addTeamScore(team, points);
 
     // Layout: quiz à esquerda e barra de ruído à direita.
-    // Usa beginFlexRow/beginFlexSection para manter o fluxo correto dos add*.
-    this.beginFlexRow({ gap: 14, justify: "center", align: "stretch" });
+    // hGap mais pequeno que o gap vertical: menos espaço entre opções e barra de ruído.
+    this.beginFlexRow({ gap: 14, hGap: 8, justify: "center", align: "stretch" });
     this.beginFlexSection({ align: "left", flex: 1 });
     this.addQuizForVideo({
       videoId: state.selectedVideoId ?? "",
@@ -1057,14 +1142,25 @@ export class UI {
     const pts = Number(points);
     const toolbarButtons = opts.toolbarButtons;
 
+    const setTeamScoreParagraphs = (el, displayName, ptsVal) => {
+      el.replaceChildren();
+      const pName = document.createElement("p");
+      pName.textContent = `${displayName}:`;
+      const pPts = document.createElement("p");
+      pPts.textContent = `${ptsVal} pts`;
+      el.appendChild(pName);
+      el.appendChild(pPts);
+      el.setAttribute("aria-label", `${displayName}: ${ptsVal} pts`);
+    };
+
     if (toolbarButtons && toolbarButtons.length > 0) {
       const stack = document.createElement("div");
       stack.className = "ui-team-score-stack";
 
       const scoreEl = document.createElement("div");
       scoreEl.className = "ui-team-score";
-      scoreEl.style.color = css(this.theme?.colors?.muted ?? "var(--muted)");
-      scoreEl.textContent = `${name}: ${pts} pts`;
+      scoreEl.setAttribute("aria-live", "polite");
+      setTeamScoreParagraphs(scoreEl, name, pts);
       stack.appendChild(scoreEl);
 
       const toolbar = document.createElement("div");
@@ -1088,8 +1184,8 @@ export class UI {
 
     const el = document.createElement("div");
     el.className = "ui-team-score";
-    el.style.color = css(this.theme?.colors?.muted ?? "var(--muted)");
-    el.textContent = `${name}: ${pts} pts`;
+    el.setAttribute("aria-live", "polite");
+    setTeamScoreParagraphs(el, name, pts);
     document.body.appendChild(el);
     this._teamScoreEl = el;
   }
@@ -1097,9 +1193,74 @@ export class UI {
   /**
    * Mostra um aviso temporário (ex.: correto / errado no quiz).
    * @param {string} text
-   * @param {{ type?: 'success' | 'error' | 'info', duration?: number }} opts
+   * @param {{
+   *   type?: 'success' | 'error' | 'info',
+   *   duration?: number,
+   *   html?: string,
+   *   dock?: 'top-left',
+   *   ariaLabel?: string,
+   *   className?: string,
+   *   boxClassName?: string — classes extra no contentor (ex.: variante visual da caixa).
+   * }} opts
+   *   Com `dock: 'top-left'` e `html`, usa caixa + badge estilo canto (Press Start 2P), fixo no viewport.
    */
   showMessage(text, opts = {}) {
+    const htmlStr = opts.html != null ? String(opts.html).trim() : "";
+    if (opts.dock === "top-left" && htmlStr) {
+      if (this._dockedMessageTimer) {
+        clearTimeout(this._dockedMessageTimer);
+        this._dockedMessageTimer = null;
+      }
+      if (this._dockedMessageEl) {
+        this._dockedMessageEl.remove();
+        this._dockedMessageEl = null;
+      }
+
+      const duration = opts.duration ?? 2500;
+      const themeRadius = this.theme?.radius?.md ?? "16px";
+      const box = document.createElement("div");
+      const extraBoxClass = opts.boxClassName != null ? String(opts.boxClassName).trim() : "";
+      box.className = ["ui-shadow-box", "ui-shadow-box--dock-tl", extraBoxClass]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+      box.style.display = "flex";
+      box.style.flexDirection = "column";
+      box.style.gap = "14px";
+      box.style.padding = "20px";
+      box.style.borderRadius = themeRadius;
+      box.style.boxShadow = "0 50px 125px rgba(0, 0, 0, 0.40)";
+      if (!extraBoxClass) {
+        box.style.backgroundColor = "rgba(0, 0, 0, 0.28)";
+        box.style.backdropFilter = "blur(1.5px)";
+      }
+
+      const hint = document.createElement("div");
+      hint.className = [
+        "ui-corner-hint-badge",
+        "ui-corner-hint-badge--inline",
+        "ui-corner-hint-badge--wide",
+        "ui-corner-hint-badge--dock-tl",
+        opts.className,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+      hint.innerHTML = htmlStr;
+      hint.setAttribute("aria-live", "polite");
+      hint.setAttribute("aria-label", opts.ariaLabel ?? "");
+
+      box.appendChild(hint);
+      this.overlays.root.appendChild(box);
+      this._dockedMessageEl = box;
+      this._dockedMessageTimer = setTimeout(() => {
+        box.remove();
+        if (this._dockedMessageEl === box) this._dockedMessageEl = null;
+        this._dockedMessageTimer = null;
+      }, duration);
+      return;
+    }
+
     const type = opts.type ?? "info";
     const duration = opts.duration ?? 2500;
     const el = document.createElement("div");
@@ -1115,7 +1276,7 @@ export class UI {
    * - onExceedAction: nome de uma ação a chamar quando há demasiado ruído.
    * - onExceed: callback opcional (sem argumentos) a chamar quando há demasiado ruído.
    * O threshold é tratado internamente (valor razoável por omissão).
-   * @param {{ sensitivity?: number, onExceedAction?: string, onExceed?: () => void }} opts
+   * @param {{ threshold?: number, sensitivity?: number, onExceedAction?: string, onExceed?: () => void }} opts
    */
   addNoiseLevel(opts = {}) {
     if (this._noiseLevelDestroy) {
@@ -1126,7 +1287,7 @@ export class UI {
     const action = opts.onExceedAction ?? "";
     const onExceedCallback = typeof opts.onExceed === "function" ? opts.onExceed : null;
     const widget = createNoiseLevelWidget(this._ensureContent(), {
-      threshold: 0.5,
+      threshold: opts.threshold ?? 0.5,
       sensitivity: opts.sensitivity ?? 1,
       onExceed: () => {
         if (onExceedCallback) onExceedCallback();
@@ -1134,6 +1295,34 @@ export class UI {
       },
     });
     this._noiseLevelDestroy = widget.destroy.bind(widget);
+  }
+
+  /**
+   * Mesma árvore DOM que a barra de ruído, sem microfone — reserva espaço no layout até
+   * addNoiseLevel() substituir (remove este shell no primeiro addNoiseLevel).
+   */
+  addNoiseLevelShell() {
+    if (this._noiseLevelDestroy) {
+      this._noiseLevelDestroy();
+      this._noiseLevelDestroy = null;
+    }
+    const wrap = document.createElement("div");
+    wrap.className = "noise-level-wrap noise-level-wrap--shell";
+    wrap.setAttribute("aria-hidden", "true");
+    const label = document.createElement("div");
+    label.className = "noise-level-label";
+    const outer = document.createElement("div");
+    outer.className = "noise-level-outer";
+    const inner = document.createElement("div");
+    inner.className = "noise-level-inner";
+    outer.appendChild(inner);
+    wrap.appendChild(label);
+    wrap.appendChild(outer);
+    this._ensureContent().appendChild(wrap);
+    this._noiseLevelDestroy = () => {
+      wrap.remove();
+      this._noiseLevelDestroy = null;
+    };
   }
 
   /**
