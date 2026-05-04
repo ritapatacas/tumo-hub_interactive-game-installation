@@ -2,10 +2,30 @@
   "#K93U": {
     "code": "#K93U",
     "name": "Ctrl+Z",
-    "points": 88,
-    "viewedVideoIds": [],
-    "answeredQuestionIds": [],
-    "quizHistory": {}
+    "points": 43,
+    "viewedVideoIds": [
+      "Untitled-1",
+      "InesGamboa",
+      "LuisBarbosa",
+      "Untitled-3",
+      "Untitled-4"
+    ],
+    "answeredQuestionIds": [
+      "Untitled-4::Qual o primeiro obtáculo?",
+      "Untitled-1::Em que ambiente o player está?"
+    ],
+    "quizHistory": {
+      "Untitled-4": {
+        "Untitled-4::Qual o primeiro obtáculo?": [
+          true
+        ]
+      },
+      "Untitled-1": {
+        "Untitled-1::Em que ambiente o player está?": [
+          false
+        ]
+      }
+    }
   },
   "#Y9Z4": {
     "code": "#Y9Z4",
@@ -101,6 +121,24 @@
       "Untitled-4": {
         "Untitled-4::Qual o penteado do personagem": [
           false
+        ]
+      }
+    }
+  },
+  "#KY7P": {
+    "code": "#KY7P",
+    "name": "1+1",
+    "points": 0,
+    "viewedVideoIds": [
+      "InesGamboa"
+    ],
+    "answeredQuestionIds": [
+      "InesGamboa::Quantos barcos naufragados aparecem?"
+    ],
+    "quizHistory": {
+      "InesGamboa": {
+        "InesGamboa::Quantos barcos naufragados aparecem?": [
+          true
         ]
       }
     }

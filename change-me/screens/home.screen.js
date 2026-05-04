@@ -33,14 +33,14 @@ homeScreen.addMountStep(({ ui, isP1 }) => {
     return;
   }
   ui.addText({
-    text: "Escolhe um nome para a tua equipa ou escreve um código existente",
+    text: "Escolhe um nome para a tua equipa (ou escreve o teu código)",
     marginTop: 30,
     variant: "body",
     fontSize: "clamp(22px, 2.5vw, 32px)",
   });
   ui.addInput({
     id: "teamName",
-    placeholder: "nome da equipa ou #G3H1",
+    placeholder: "equipa",
     actionOnEnter: "saveTeamName",
     maxWidth: 360,
     align: "center",

@@ -76,7 +76,7 @@ export async function connectArduino(ctx) {
   }
   try {
     await serial.connect({ baudRate: 9600 });
-    ctx.ui.showMessage("Arduino ligado. Os botões controlam as opções do quiz.", { type: "success" });
+    console.info("Arduino ligado. Os botões controlam as opções do quiz.");
   } catch (e) {
     ctx.ui.showMessage(e?.message || "Erro ao ligar Arduino.", { type: "error" });
   }
@@ -105,7 +105,7 @@ export function openSelectedVideo(ctx) {
   const items = ctx.state.videosData ?? [];
   const item = items.find((v) => v.id === id);
   if (!item) {
-    ctx.ui.showMessage("Escolhe um vídeo na galeria primeiro.", { type: "info" });
+    console.info("Escolhe um vídeo na galeria primeiro.");
     return;
   }
   ctx.actions.openVideoFromGallery({ ...ctx, payload: item });
@@ -179,6 +179,7 @@ export function saveTeamNameOrWarn(ctx) {
     if (result?.reason === "code-not-found") {
       ctx.ui.showMessage("", {
         dock: "top-left",
+        boxClassName: "ui-shadow-box--docked-error",
         html: `CÓDIGO NÃO ENCONTRADO!<br>${result.code}`,
         ariaLabel: `Código ${result.code} não encontrado.`,
         duration: 5000,
@@ -187,6 +188,7 @@ export function saveTeamNameOrWarn(ctx) {
     }
     ctx.ui.showMessage("", {
       dock: "top-left",
+      boxClassName: "ui-shadow-box--docked-error",
       html: "ESCREVE O NOME DA EQUIPA!",
       ariaLabel: "Escreve o nome da equipa.",
       duration: 5000,

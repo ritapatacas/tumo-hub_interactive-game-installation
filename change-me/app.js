@@ -89,6 +89,6 @@ export const actions = {
   },
   templateInputSubmit: (ctx) => {
     const value = ctx.ui.getInputValue("templateInput");
-    ctx.ui.showMessage(value ? `Enviado: ${value}` : "Escreve algo primeiro.", { type: "info" });
+    console.info(value ? `Enviado: ${value}` : "Escreve algo primeiro.");
   },
 };

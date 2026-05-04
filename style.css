@@ -120,6 +120,7 @@ html, body {
   top: 24px;
   text-align: right;
   text-transform: uppercase;
+  font-size: 32px;
 }
 
 .ui-team-identity {
@@ -129,11 +130,13 @@ html, body {
   flex-direction: column;
   gap: 4px;
   padding: 14px 18px;
-  background: rgba(0, 0, 0, 0.28);
+  background: rgba(0, 0, 0, 0.48);
   border-radius: 3px;
   box-shadow: 0 50px 125px rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(1.5px);
   -webkit-backdrop-filter: blur(1.5px);
+  color: #fcfcfc;
+  font-size: 24px;
   text-align: left;
   text-transform: uppercase;
 }
@@ -193,11 +196,19 @@ html, body {
 /* Ruído + resposta errada no quiz: caixa vermelha, texto branco */
 .ui-shadow-box--noise-penalty,
 .ui-shadow-box--docked-error {
+  left: 50%;
+  top: 24px;
+  transform: translateX(-50%);
+  align-items: center;
+  text-align: center;
   background: rgba(185, 32, 42, 0.96) !important;
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.38);
   border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.ui-shadow-box--noise-penalty {
 }
 
 .ui-shadow-box--noise-penalty .ui-corner-hint-badge--dock-tl,
@@ -213,6 +224,11 @@ html, body {
   -webkit-backdrop-filter: blur(5px);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.38);
   border: 1px solid rgba(255, 255, 255, 0.16);
+  left: 50%;
+  top: 24px;
+  transform: translateX(-50%);
+  align-items: center;
+  text-align: center;
 }
 
 .ui-shadow-box--docked-success .ui-corner-hint-badge--dock-tl {
@@ -1164,9 +1180,13 @@ html, body {
 }
 
 .ui-toast.error {
+  top: 24px;
+  bottom: auto;
   background: var(--danger);
   color: var(--danger-text);
   border-color: var(--danger);
+  font-size: 24px;
+  text-align: center;
 }
 
 @keyframes ui-toast-in {
