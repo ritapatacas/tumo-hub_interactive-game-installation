@@ -18,6 +18,7 @@ function parseRoleFromUrl(params) {
 export function getSessionConfigFromUrl() {
   const params = new URLSearchParams(window.location.search);
   return {
+    interfaceName: params.get("interface") || "default",
     role: parseRoleFromUrl(params),
     sessionId: params.get("s") || params.get("session") || "default",
     wsUrl: params.get("ws") || createDefaultWsUrl(),

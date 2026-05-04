@@ -17,6 +17,12 @@ Interface is then available at:
 - `http://localhost:5173/?player=1`
 - `http://localhost:5173/?player=2`
 
+You can also load a specific interface mode through the query string:
+
+- `http://localhost:5173/?interface=door`
+- `http://localhost:5173/?interface=door&player=1`
+- `http://localhost:5173/?interface=door&player=2`
+
 When using more than one computer to run each player interface, the app must be exposed to the network.
 
 To run the application and expose it to the network:
@@ -41,6 +47,11 @@ npm run dev:host:sync
 - `change-me/screens.js` (create screens)
 - `change-me/actions.js` (define action strings)
 - `change-me/theme.js` (colors / typography)
+
+Alternative interface modes can live in their own folder.
+
+- `change-me/` default interface
+- `door/` dedicated interface available at `/?interface=door`
 
 ## Assets
 

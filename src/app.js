@@ -3,8 +3,8 @@ import { UI } from "./core/ui.js";
 import { createOverlays } from "./core/domOverlays.js";
 import { serial } from "./serial.js";
 import { SessionSync } from "./core/sessionSync.js";
+import { resolveInterfaceConfig } from "./interfaceRegistry.js";
 
-import { theme, actions, screens } from "../change-me/app.js";
 import { mergeDummyLeaderboardIfEnabled } from "./core/dummyLeaderboard.js";
 import { sanitizeTeams } from "./core/team.js";
 
@@ -132,6 +132,8 @@ async function saveTeamsToServer(apiBaseUrl, teams) {
 }
 
 export async function createApp(mountEl, sessionConfig) {
+  const interfaceConfig = resolveInterfaceConfig(sessionConfig?.interfaceName);
+  const { theme, actions, screens } = interfaceConfig;
   const role = sessionConfig?.role === "p1" ? "p1" : "p2";
   const isController = role === "p2";
   const apiBaseUrl = createApiBaseUrl(sessionConfig);
@@ -246,6 +248,7 @@ export async function createApp(mountEl, sessionConfig) {
 
   for (const screen of screens) sm.register(screen);
 
+  document.body.dataset.interface = sessionConfig?.interfaceName || "default";
   document.body.dataset.role = role;
   document.body.dataset.connection = "disconnected";
 
