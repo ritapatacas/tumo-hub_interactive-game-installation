@@ -15,7 +15,6 @@ galleryScreen.setBackgroundImage({
   position: "center center",
 });
 
-/** P1: thumbnails, destaque aleatório a cada segundo (sem escolher). */
 galleryScreen.addSpotlightGallery({
   columns: 3,
   variant: "thumbnails",
@@ -23,5 +22,5 @@ galleryScreen.addSpotlightGallery({
 
 galleryScreen.onEnter(({ ui, state }) => {
   const team = getTeam(state);
-  ui.addTeamScore(team.name, team.points);
+  ui.addTeamScore(team.name, team.points, { teamCode: team.code });
 });

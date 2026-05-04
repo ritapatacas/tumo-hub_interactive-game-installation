@@ -1,0 +1,108 @@
+{
+  "#K93U": {
+    "code": "#K93U",
+    "name": "Ctrl+Z",
+    "points": 88,
+    "viewedVideoIds": [],
+    "answeredQuestionIds": [],
+    "quizHistory": {}
+  },
+  "#Y9Z4": {
+    "code": "#Y9Z4",
+    "name": "Bug&Fix",
+    "points": 84,
+    "viewedVideoIds": [],
+    "answeredQuestionIds": [],
+    "quizHistory": {}
+  },
+  "#7RJL": {
+    "code": "#7RJL",
+    "name": "404x2",
+    "points": 81,
+    "viewedVideoIds": [],
+    "answeredQuestionIds": [],
+    "quizHistory": {}
+  },
+  "#AKM3": {
+    "code": "#AKM3",
+    "name": "Telepatia",
+    "points": 77,
+    "viewedVideoIds": [],
+    "answeredQuestionIds": [],
+    "quizHistory": {}
+  },
+  "#LEX5": {
+    "code": "#LEX5",
+    "name": "Dois Neurónios",
+    "points": 73,
+    "viewedVideoIds": [],
+    "answeredQuestionIds": [],
+    "quizHistory": {}
+  },
+  "#AQTA": {
+    "code": "#AQTA",
+    "name": "Dupla Quase Boa",
+    "points": 69,
+    "viewedVideoIds": [],
+    "answeredQuestionIds": [],
+    "quizHistory": {}
+  },
+  "#H8BR": {
+    "code": "#H8BR",
+    "name": "TeamTalvez",
+    "points": 64,
+    "viewedVideoIds": [],
+    "answeredQuestionIds": [],
+    "quizHistory": {}
+  },
+  "#C2V5": {
+    "code": "#C2V5",
+    "name": "Ajuda do Público",
+    "points": 59,
+    "viewedVideoIds": [],
+    "answeredQuestionIds": [],
+    "quizHistory": {}
+  },
+  "#CJZ5": {
+    "code": "#CJZ5",
+    "name": "DoisÀSorte",
+    "points": 45,
+    "viewedVideoIds": [],
+    "answeredQuestionIds": [],
+    "quizHistory": {}
+  },
+  "#726Y": {
+    "code": "#726Y",
+    "name": "Quase Pro",
+    "points": 31,
+    "viewedVideoIds": [],
+    "answeredQuestionIds": [],
+    "quizHistory": {}
+  },
+  "#RGKZ": {
+    "code": "#RGKZ",
+    "name": "double noobs",
+    "points": 0,
+    "viewedVideoIds": [],
+    "answeredQuestionIds": [],
+    "quizHistory": {}
+  },
+  "#YS4H": {
+    "code": "#YS4H",
+    "name": "WINNERS",
+    "points": 0,
+    "viewedVideoIds": [
+      "Untitled-4"
+    ],
+    "answeredQuestionIds": [
+      "Untitled-4::Qual o penteado do personagem"
+    ],
+    "quizHistory": {
+      "Untitled-4": {
+        "Untitled-4::Qual o penteado do personagem": [
+          false
+        ]
+      }
+    }
+  }
+}

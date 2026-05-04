@@ -1,4 +1,3 @@
-/** PRNG determinístico: mesmo seed + tick → mesmo índice (P1/P2 sincronizados). */
 function mulberry32(seed) {
   let a = seed >>> 0;
   return function next() {
@@ -9,11 +8,6 @@ function mulberry32(seed) {
   };
 }
 
-/**
- * @param {number} seed
- * @param {number} tick segundo relativo a galleryEpoch (0, 1, 2, …)
- * @param {number} len número de vídeos
- */
 export function spotlightIndexForTick(seed, tick, len) {
   if (len <= 0) return 0;
   if (len === 1) return 0;

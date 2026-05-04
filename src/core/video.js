@@ -1,3 +1,5 @@
+import { markVideoViewed } from "./team.js";
+
 export function selectVideoFromPayload(ctx) {
   const state = ctx.state;
   const payload = ctx.payload;
@@ -27,6 +29,8 @@ export function selectVideoFromPayload(ctx) {
 
   state.selectedVideoSrc = src;
   state.selectedVideoId = id;
+  markVideoViewed(state, id);
+  ctx.persistTeams?.();
 
   return {
     selectedVideoSrc: src,
@@ -60,8 +64,7 @@ export function createVideoPlayer(domRoot) {
     video.style.display = 'block';
     if (autoplay) {
       const p = video.play();
-      // Avoid unhandled promise rejections in browsers that block autoplay
-      if (p && typeof p.catch === 'function') p.catch(() => {});
+      if (p && typeof p.catch === "function") p.catch(() => {});
     }
   }
 

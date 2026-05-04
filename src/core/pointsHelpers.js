@@ -1,8 +1,6 @@
-// Simple helpers for quiz + team points.
-// Goal: students only call small functions (no complex state updates here).
-
 import { getQuizAnswerInfo, recordQuizHistory, getCurrentTeamStats } from "./quizPoints.js";
 import { applyNoisePenalty } from "./noisePoints.js";
+import { ensureCurrentTeamRecord } from "./team.js";
 
 export function answerIsCorrect(payloadOrAnswer) {
   if (!payloadOrAnswer) return false;
@@ -12,21 +10,17 @@ export function answerIsCorrect(payloadOrAnswer) {
   return false;
 }
 
-// Normalizes payload AND records history for the current team.
-// Students can call: recordAnswer(ctx)
-// Returns useful info for simple scoring rules.
 export function recordAnswer(ctxOrState, maybePayload) {
   let state = ctxOrState;
   let payload = maybePayload;
 
-  // If first argument looks like a context object, extract state/payload from it.
   if (ctxOrState && typeof ctxOrState === "object" && "state" in ctxOrState && "payload" in ctxOrState) {
     state = ctxOrState.state;
     payload = ctxOrState.payload;
   }
 
-  let answer = getQuizAnswerInfo(payload);
-  let historyInfo = recordQuizHistory(state, answer);
+  const answer = getQuizAnswerInfo(payload);
+  const historyInfo = recordQuizHistory(state, answer);
 
   let wrongTotal = 0;
   for (let i = 0; i < historyInfo.history.length; i += 1) {
@@ -34,7 +28,7 @@ export function recordAnswer(ctxOrState, maybePayload) {
   }
 
   return {
-    answer: answer,
+    answer,
     teamId: historyInfo.teamId,
     hadWrongBefore: historyInfo.hadWrongBefore,
     wrongAnswerTotal: wrongTotal,
@@ -43,35 +37,38 @@ export function recordAnswer(ctxOrState, maybePayload) {
 }
 
 export function teamId(state) {
-  return (state?.teamName || "Equipa").toString();
+  const record = ensureCurrentTeamRecord(state);
+  return record?.code || "";
 }
 
 export function teamPoints(state, id = teamId(state)) {
-  if (!state.teams) state.teams = {};
-  if (typeof state.teams[id] !== "number") state.teams[id] = 0;
-  return state.teams[id];
+  const record = ensureCurrentTeamRecord(state);
+  if (!record) return 0;
+  if (id && record.code !== id) {
+    const other = state.teams?.[id];
+    return Number.isFinite(Number(other?.points)) ? Number(other.points) : 0;
+  }
+  return Number.isFinite(Number(record.points)) ? Number(record.points) : 0;
 }
 
-// Adds (or subtracts) points, clamps to >= 0, syncs UI and persistence.
 export function addTeamPoints(context, delta, id = teamId(context.state)) {
-  let safeDelta = Number.isFinite(delta) ? delta : 0;
-  let current = teamPoints(context.state, id);
-  let next = Math.max(0, current + safeDelta);
-
-  context.state.teams[id] = next;
-
-  // Keep teamStats (if used) in sync.
-  let stats = getCurrentTeamStats(context.state);
-  stats.team.points = next;
+  const safeDelta = Number.isFinite(delta) ? delta : 0;
+  const stats = getCurrentTeamStats(context.state);
+  const record = stats.team;
+  const current = teamPoints(context.state, id);
+  const next = Math.max(0, current + safeDelta);
+  if (!record) return 0;
+  record.points = next;
 
   if (context.persistTeams) context.persistTeams();
-  if (context.ui && context.ui.addTeamScore) context.ui.addTeamScore(id, next);
+  if (context.ui && context.ui.addTeamScore) {
+    context.ui.addTeamScore(record.name, next, { teamCode: record.code });
+  }
 
   return next;
 }
 
-// Convenience: applies a noise penalty using the existing core rule.
 export function applyNoisePenaltySimple(context, penalty, message) {
-  applyNoisePenalty(context.ui, context.state, { penalty: penalty, message: message });
+  applyNoisePenalty(context.ui, context.state, { penalty, message });
   if (context.persistTeams) context.persistTeams();
 }

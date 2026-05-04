@@ -122,6 +122,13 @@
         ],
         "correctIndex": 1
       }
+    ],
+    "more questions": [
+      "qual é o nome de ambiente",
+      "qual é o ambiente do jogo",
+      "qual é p maior obstaculo",
+      "quem sai ilha",
+      "como é a batalha, o ataque"
     ]
   },
   "video4": {
@@ -183,14 +190,34 @@
     "id": "Untitled-2",
     "quiz": [
       {
-        "text": "Pergunta sobre o vídeo Untitled-2?",
+        "text": "Quantas moedas é preciso para desbloquear a segunda area? ",
         "options": [
-          "A",
-          "B",
-          "C",
-          "D"
+          "A - 7",
+          "B - 8",
+          "C - 9",
+          "D - 10"
         ],
-        "correctIndex": 0
+        "correctIndex": 3
+      },
+      {
+        "text": "Quantas moedas o personagem apanhou? ",
+        "options": [
+          "A - 24",
+          "B - 67",
+          "C - 12",
+          "D - 36"
+        ],
+        "correctIndex": 1
+      },
+      {
+        "text": "Quando o jogo começa qual roupa o esqueleto usa? ",
+        "options": [
+          "A - Nada",
+          "B - Roupa de médico",
+          "C - Armadura",
+          "D - Vestes gregas"
+        ],
+        "correctIndex": 2
       }
     ]
   },

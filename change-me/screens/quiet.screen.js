@@ -1,8 +1,6 @@
 import { Screen } from "../../src/core/Screen.js";
 import { getTeam } from "../../src/core/team.js";
 
-let quietEnterAdvanceHandler = null;
-
 export let quietScreen = new Screen("quiet");
 
 quietScreen.setLayout({
@@ -26,17 +24,10 @@ quietScreen.addText({
   marginTop: "clamp(20px, 3.5vh, 40px)",
 });
 
-quietScreen.addMountStep(({ ui }) => {
-  if (document.body.dataset.role === "p1") return;
-    ui.beginShadowBox({ dock: "bottom-left", radius: "3px" });
-  ui.setCornerHint({
-    html:
-      'PRIME:<br><span class="ui-corner-hint-dot ui-corner-hint-dot--white" aria-hidden="true">⬤</span> CONTINUAR',
-    ariaLabel: "Prima o botão branco para continuar",
-    className: "ui-corner-hint-badge--wide",
-    inline: true,
-  });
-  ui.endShadowBox();
+quietScreen.addCornerHint({
+  p2Only: true,
+  buttons: [{ color: "white", label: "CONTINUAR" }],
+  ariaLabel: "Prima o botão branco para continuar",
 });
 
 quietScreen.beginFlexRow({
@@ -63,8 +54,7 @@ quietScreen.beginFlexSection({
   justify: "flex-start",
 });
 
-quietScreen.addMountStep(({ ui, payload }) => {
-  const isP1 = document.body.dataset.role === "p1";
+quietScreen.addMountStep(({ ui, payload, isP1 }) => {
   const bodyFontSize = "clamp(22px, 2.6vw, 36px)";
   if (isP1 && payload?.p1WhileP2Quiz) {
     ui.addText({
@@ -91,8 +81,8 @@ quietScreen.addMountStep(({ ui, payload }) => {
 });
 quietScreen.endFlexSection();
 
-quietScreen.addMountStep(({ ui, payload }) => {
-  if (document.body.dataset.role !== "p1") return;
+quietScreen.addMountStep(({ ui, payload, isP1 }) => {
+  if (!isP1) return;
   ui.beginFlexSection({
     align: "left",
     flex: false,
@@ -114,7 +104,6 @@ quietScreen.addMountStep(({ ui, payload }) => {
       sensitivity: 2,
     });
   } else {
-    /* Contador em onEnter por baixo do texto (igual ao P2); aqui só reserva da barra */
     ui.addNoiseLevelShell();
   }
   ui.endFlexSection();
@@ -122,47 +111,18 @@ quietScreen.addMountStep(({ ui, payload }) => {
 
 quietScreen.endFlexRow();
 
-quietScreen.onEnter(({ ui, state, payload }) => {
+quietScreen.onKeyDown("Enter", "advanceFromQuiet", {
+  when: (c) => !(c.isP1 && c.payload?.p1WhileP2Quiz),
+});
+
+quietScreen.onEnter(({ ui, state, payload, isP1 }) => {
   const team = getTeam(state);
-  ui.addTeamScore(team.name, team.points);
-
-  const isP1 = document.body.dataset.role === "p1";
-  if (isP1 && payload?.p1WhileP2Quiz) {
-    return;
-  }
-  if (isP1) {
-    ui.addCountdownTimer({
-      seconds: 10,
-      label: "Tempo",
-      showZero: false,
-      dangerAlways: true,
-    });
-    quietEnterAdvanceHandler = (e) => {
-      if (e.key !== "Enter") return;
-      if (e.repeat) return;
-      ui.runAction("advanceFromQuiet");
-    };
-    window.addEventListener("keydown", quietEnterAdvanceHandler);
-    return;
-  }
-
+  ui.addTeamScore(team.name, team.points, { teamCode: team.code });
+  if (isP1 && payload?.p1WhileP2Quiz) return;
   ui.addCountdownTimer({
     seconds: 10,
     label: "Tempo",
     showZero: false,
     dangerAlways: true,
   });
-  quietEnterAdvanceHandler = (e) => {
-    if (e.key !== "Enter") return;
-    if (e.repeat) return;
-    ui.runAction("advanceFromQuiet");
-  };
-  window.addEventListener("keydown", quietEnterAdvanceHandler);
-});
-
-quietScreen.onExit(() => {
-  if (quietEnterAdvanceHandler) {
-    window.removeEventListener("keydown", quietEnterAdvanceHandler);
-    quietEnterAdvanceHandler = null;
-  }
 });

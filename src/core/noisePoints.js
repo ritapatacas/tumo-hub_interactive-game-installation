@@ -1,14 +1,15 @@
+import { ensureCurrentTeamRecord } from "./team.js";
+
 export function applyNoisePenalty(ui, state, { penalty, message }) {
-  const team = state.teamName || "Equipa";
-  if (state.teams[team] === undefined) state.teams[team] = 0;
+  const team = ensureCurrentTeamRecord(state);
+  if (!team) return;
 
   const safePenalty = Number.isFinite(penalty) ? penalty : 0;
-  state.teams[team] = Math.max(0, state.teams[team] - safePenalty);
+  team.points = Math.max(0, team.points - safePenalty);
 
-  ui.addTeamScore(team, state.teams[team]);
+  ui.addTeamScore(team.name, team.points, { teamCode: team.code });
   ui.showMessage(message, {
     type: "error",
     duration: 1500,
   });
 }
-

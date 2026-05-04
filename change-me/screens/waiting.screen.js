@@ -14,13 +14,9 @@ waitingScreen.setBackgroundImage({
   position: "center center",
 });
 
-
-
 waitingScreen.addText({ text: "A reproduzir o vídeo!", variant: "title", shadow: true });
 
-
 waitingScreen.onEnter(({ ui, payload }) => {
-  
   const message = payload?.message || "A sessão está a avançar no outro ecrã.";
   ui.beginShadowBox();
   ui.addText({ text: message, variant: "body" });

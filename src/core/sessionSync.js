@@ -3,12 +3,6 @@ function createDefaultWsUrl() {
   return `${protocol}://${window.location.hostname}:8787`;
 }
 
-/**
- * URL: ?player=1 (Player 1, só display) | ?player=2 (Player 2, controlador).
- * Sem `player` → P2 (útil para testar num único ecrã).
- * Retrocompatível: ?p=1|2, depois ?role=p1|p2.
- * Sessão opcional: ?s=id  (ou legado ?session=)
- */
 function parseRoleFromUrl(params) {
   const player = params.get("player");
   if (player === "1") return "p1";

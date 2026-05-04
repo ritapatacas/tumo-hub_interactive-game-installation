@@ -4,9 +4,9 @@ import { createOverlays } from "./core/domOverlays.js";
 import { serial } from "./serial.js";
 import { SessionSync } from "./core/sessionSync.js";
 
-// Student configuration (screens + actions + flow)
 import { theme, actions, screens } from "../change-me/app.js";
 import { mergeDummyLeaderboardIfEnabled } from "./core/dummyLeaderboard.js";
+import { sanitizeTeams } from "./core/team.js";
 
 const TEAMS_STORAGE_KEY = "tumo_hub_teams";
 const SHARED_SCREENS = new Set(["home", "tutorial", "attention", "quiet", "leaderboard"]);
@@ -41,6 +41,7 @@ function resolveVisibleScreen(globalScreen, role) {
 function extractSharedState(state) {
   return {
     teamName: state.teamName || "",
+    teamCode: state.teamCode || "",
     teams: state.teams ?? {},
     selectedVideoSrc: state.selectedVideoSrc || "",
     selectedVideoQuiz: state.selectedVideoQuiz ?? null,
@@ -54,7 +55,8 @@ function extractSharedState(state) {
 function applySharedState(state, shared) {
   if (!shared || typeof shared !== "object") return;
   if (typeof shared.teamName === "string") state.teamName = shared.teamName;
-  if (shared.teams && typeof shared.teams === "object") state.teams = shared.teams;
+  if (typeof shared.teamCode === "string") state.teamCode = shared.teamCode;
+  if (shared.teams && typeof shared.teams === "object") state.teams = sanitizeTeams(shared.teams);
   if (typeof shared.selectedVideoSrc === "string") state.selectedVideoSrc = shared.selectedVideoSrc;
   if (Object.prototype.hasOwnProperty.call(shared, "selectedVideoQuiz")) {
     state.selectedVideoQuiz = shared.selectedVideoQuiz;
@@ -71,23 +73,81 @@ function payloadEqual(a, b) {
   return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 }
 
+function saveTeamsToStorage(teams) {
+  try {
+    localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(teams));
+  } catch (error) {
+    console.warn("Could not save teams to storage", error);
+  }
+}
+
 function loadTeamsFromStorage() {
   try {
     const raw = localStorage.getItem(TEAMS_STORAGE_KEY);
     if (!raw) return {};
     const data = JSON.parse(raw);
-    return typeof data === "object" && data !== null ? data : {};
+    return sanitizeTeams(data);
   } catch {
     return {};
   }
 }
 
+function createApiBaseUrl(sessionConfig) {
+  const wsUrl = sessionConfig?.wsUrl;
+  if (!wsUrl) {
+    return `${window.location.protocol}//${window.location.hostname}:8787`;
+  }
+  try {
+    const url = new URL(wsUrl);
+    url.protocol = url.protocol === "wss:" ? "https:" : "http:";
+    return url.origin;
+  } catch {
+    return `${window.location.protocol}//${window.location.hostname}:8787`;
+  }
+}
+
+async function loadTeamsFromServer(apiBaseUrl) {
+  const res = await fetch(`${apiBaseUrl}/api/teams`);
+  if (!res.ok) {
+    throw new Error(`Could not load teams (${res.status})`);
+  }
+  const data = await res.json();
+  return sanitizeTeams(data?.teams);
+}
+
+async function saveTeamsToServer(apiBaseUrl, teams) {
+  const safeTeams = sanitizeTeams(teams);
+  const res = await fetch(`${apiBaseUrl}/api/teams`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ teams: safeTeams }),
+  });
+  if (!res.ok) {
+    throw new Error(`Could not save teams (${res.status})`);
+  }
+  const data = await res.json();
+  return sanitizeTeams(data?.teams);
+}
+
 export async function createApp(mountEl, sessionConfig) {
   const role = sessionConfig?.role === "p1" ? "p1" : "p2";
   const isController = role === "p2";
+  const apiBaseUrl = createApiBaseUrl(sessionConfig);
+  let teams = loadTeamsFromStorage();
+
+  try {
+    teams = await loadTeamsFromServer(apiBaseUrl);
+    saveTeamsToStorage(teams);
+  } catch (error) {
+    console.warn("Could not load teams from sync server, using local cache", error);
+  }
+
   const state = {
     teamName: "",
-    teams: loadTeamsFromStorage(),
+    teamCode: "",
+    teams,
     selectedVideoSrc: "",
     selectedVideoQuiz: null,
     videosData: [],
@@ -95,7 +155,6 @@ export async function createApp(mountEl, sessionConfig) {
 
   mergeDummyLeaderboardIfEnabled(state);
 
-  // Carrega as perguntas a partir de perguntas.json
   const res = await fetch("/perguntas.json");
   if (res.ok) {
     const raw = await res.json();
@@ -106,7 +165,6 @@ export async function createApp(mountEl, sessionConfig) {
       return {
         id,
         quiz: entry.quiz ?? [],
-        // Usa o id para resolver automaticamente os paths
         videoPath: `/assets/videos/${id}.mp4`,
         thumbnailPath: `/assets/thumbnails/${id}.png`,
       };
@@ -123,8 +181,25 @@ export async function createApp(mountEl, sessionConfig) {
 
   let currentGlobalScreen = "home";
   let currentGlobalPayload = null;
-  /** Evita que o P2 reaplique um ecrã antigo do sync (ex. gallery) depois de ir para tutorial. */
   let lastControllerLocalNavAt = 0;
+  let lastPersistPromise = Promise.resolve();
+
+  const persistTeams = (nextTeams = state.teams) => {
+    const safeTeams = sanitizeTeams(nextTeams);
+    state.teams = safeTeams;
+    saveTeamsToStorage(safeTeams);
+    lastPersistPromise = lastPersistPromise
+      .catch(() => {})
+      .then(() => saveTeamsToServer(apiBaseUrl, safeTeams))
+      .then((savedTeams) => {
+        state.teams = savedTeams;
+        saveTeamsToStorage(savedTeams);
+      })
+      .catch((error) => {
+        console.warn("Could not persist teams to sync server", error);
+      });
+    return lastPersistPromise;
+  };
 
   const renderGlobal = (screenName, payload) => {
     currentGlobalScreen = screenName;
@@ -139,6 +214,7 @@ export async function createApp(mountEl, sessionConfig) {
     actions,
     state,
     teamsStorageKey: TEAMS_STORAGE_KEY,
+    onPersistTeams: persistTeams,
     canRunAction: (actionName) =>
       isController ||
       actionName === "videoEndedAdvance" ||
@@ -164,7 +240,6 @@ export async function createApp(mountEl, sessionConfig) {
     },
   });
 
-  // Serial: cada botão (red, blue, yellow, white) mapeia para opção do quiz (0–3)
   if (isController && serial.isSupported()) {
     serial.onButtonPress((optionIndex) => ui.simulateQuizOptionClick(optionIndex));
   }
@@ -181,7 +256,6 @@ export async function createApp(mountEl, sessionConfig) {
   sync.onState((msg) => {
     const screenName = msg.screen || "home";
     const payload = msg.payload ?? null;
-    /** Evita segundo mount no P2 quando o servidor reenvia o mesmo ecrã (eco do próprio publish): unmount apagava a mensagem dock do quiz. */
     const echoSkip =
       isController &&
       screenName === currentGlobalScreen &&
@@ -189,7 +263,7 @@ export async function createApp(mountEl, sessionConfig) {
 
     if (!echoSkip) {
       applySharedState(state, msg.sharedState);
-      // O sync substitui `teams`; voltar a aplicar dummy para `?dummyLeaderboard=1` ou lista vazia.
+      saveTeamsToStorage(state.teams ?? {});
       mergeDummyLeaderboardIfEnabled(state);
     }
 
@@ -211,6 +285,7 @@ export async function createApp(mountEl, sessionConfig) {
 
   sync.connect();
   if (isController) {
+    await lastPersistPromise;
     sync.publishScreen({
       screen: currentGlobalScreen,
       payload: currentGlobalPayload,

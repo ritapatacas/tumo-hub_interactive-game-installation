@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:host:sync": "node server/dev-host-sync.mjs",
     "sync": "node server/sync-server.mjs",
     "build": "vite build",
     "preview": "vite preview"

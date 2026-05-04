@@ -1,18 +1,7 @@
-/**
- * Nível de ruído (microfone). Barra vertical; quando nível > threshold chama onExceed.
- * Sensibilidade regula o valor exibido: displayedLevel = rawLevel * sensitivity.
- * Implementação escondida no core.
- */
-
 function clamp01(n) {
   return Math.max(0, Math.min(1, Number(n)));
 }
 
-/**
- * @param {HTMLElement} container
- * @param {{ threshold?: number, sensitivity?: number, onExceed?: () => void }} opts
- * @returns {{ destroy: () => void }}
- */
 export function createNoiseLevelWidget(container, opts = {}) {
   const threshold = clamp01(opts.threshold ?? 0.8);
   const sensitivity = Math.max(0.1, Number(opts.sensitivity) || 1);
@@ -56,11 +45,10 @@ export function createNoiseLevelWidget(container, opts = {}) {
       animationId = requestAnimationFrame(tick);
       return;
     }
-    // Usar time domain (onda) para volume mais responsivo ao ruído/voz
     const data = new Uint8Array(analyser.fftSize);
     analyser.getByteTimeDomainData(data);
     let sum = 0;
-    for (let i = 0; i < data.length; i++) {
+    for (let i = 0; i < data.length; i += 1) {
       const v = data[i] - 128;
       sum += v * v;
     }

@@ -12,6 +12,30 @@ npm install
 npm run dev
 ```
 
+Interface is then available at:
+
+- `http://localhost:5173/?player=1`
+- `http://localhost:5173/?player=2`
+
+When using more than one computer to run each player interface, the app must be exposed to the network.
+
+To run the application and expose it to the network:
+
+```bash
+npm run dev -- --host
+```
+
+Replace `localhost` with the local IP of the computer serving the app:
+
+- `http://<local ip>:5173/?player=1`
+- `http://<local ip>:5173/?player=2`
+
+To run both the app with `--host` and the sync server together:
+
+```bash
+npm run dev:host:sync
+```
+
 ## Where students edit
 
 - `change-me/screens.js` (create screens)

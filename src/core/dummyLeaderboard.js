@@ -1,24 +1,18 @@
-/**
- * Top 10 fictício para o leaderboard (nome → pontos).
- * - Sem equipas guardadas: estes dados preenchem o ranking automaticamente.
- * - `?dummyLeaderboard=1` ou `true` (também no fragmento: `#/?dummyLeaderboard=1`): força a misturar com dados reais.
- * - `?dummyLeaderboard=0` ou `false`: não injeta dummy mesmo com lista vazia.
- * Equipas reais em `localStorage` sobrepõem nomes iguais.
- */
+import { sanitizeTeams } from "./team.js";
+
 export const DUMMY_LEADERBOARD_TEAMS = {
-  "Ctrl+Z": 88,
-  "Bug&Fix": 84,
-  "404x2": 81,
-  Telepatia: 77,
-  "Dois Neurónios": 73,
-  "Dupla Quase Boa": 69,
-  TeamTalvez: 64,
-  "Ajuda do Público": 59,
-  "DoisÀSorte": 45,
-  "Quase Pro": 31,
+  "#CZ88": { code: "#CZ88", name: "Ctrl+Z", points: 88 },
+  "#BF84": { code: "#BF84", name: "Bug&Fix", points: 84 },
+  "#4X81": { code: "#4X81", name: "404x2", points: 81 },
+  "#TP77": { code: "#TP77", name: "Telepatia", points: 77 },
+  "#DN73": { code: "#DN73", name: "Dois Neurónios", points: 73 },
+  "#DQ69": { code: "#DQ69", name: "Dupla Quase Boa", points: 69 },
+  "#TV64": { code: "#TV64", name: "TeamTalvez", points: 64 },
+  "#AP59": { code: "#AP59", name: "Ajuda do Público", points: 59 },
+  "#DS45": { code: "#DS45", name: "DoisÀSorte", points: 45 },
+  "#QP31": { code: "#QP31", name: "Quase Pro", points: 31 },
 };
 
-/** `?x=1` no path ou após `#` (ex.: `#/?dummyLeaderboard=1`). */
 function readUrlSearchParams() {
   if (typeof window === "undefined") return new URLSearchParams();
   const search = window.location.search;
@@ -40,8 +34,8 @@ export function mergeDummyLeaderboardIfEnabled(state) {
   const v = raw == null ? "" : String(raw).trim().toLowerCase();
   const forceOn = v === "1" || v === "true" || v === "yes" || v === "on";
   const forceOff = v === "0" || v === "false" || v === "no" || v === "off";
-  const teams = state.teams && typeof state.teams === "object" ? state.teams : {};
+  const teams = sanitizeTeams(state.teams);
   const empty = Object.keys(teams).length === 0;
   if (forceOff || (!forceOn && !empty)) return;
-  state.teams = { ...DUMMY_LEADERBOARD_TEAMS, ...teams };
+  state.teams = { ...sanitizeTeams(DUMMY_LEADERBOARD_TEAMS), ...teams };
 }

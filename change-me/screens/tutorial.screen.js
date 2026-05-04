@@ -1,5 +1,6 @@
 import { Screen } from "../../src/core/Screen.js";
 import { getTeam } from "../../src/core/team.js";
+import { bindTutorialContinueKey } from "../../src/core/screenBindings.js";
 
 const tutStepText = {
   variant: "hand",
@@ -10,28 +11,20 @@ const tutStepText = {
 export let tutorialScreen = new Screen("tutorial");
 
 tutorialScreen.setLayout({ gap: 0, maxWidth: 490, vAlign: "top", marginTop: "25vh" });
-
-// --- Imagem de fundo ---
 tutorialScreen.setBackgroundImage({
   filename: "bg-06.png",
   size: "cover",
   position: "center center",
 });
 
-tutorialScreen.addMountStep(({ ui }) => {
-  if (document.body.dataset.role === "p1") {
-    ui.setCornerHint({ text: "" });
-    return;
-  }
-  ui.beginShadowBox({ dock: "bottom-left", radius: "3px" });
-  ui.setCornerHint({
-    html:
-      'PRIME:<br><span class="ui-corner-hint-dot ui-corner-hint-dot--white" aria-hidden="true">⬤</span> PARA CONTINUAR',
-    ariaLabel: "Prima o botão branco ou a tecla Enter para ir à galeria",
-    className: "ui-corner-hint-badge--wide",
-    inline: true,
-  });
-  ui.endShadowBox();
+tutorialScreen.addCornerHint({
+  p2Only: true,
+  buttons: [{ color: "white", label: "PARA CONTINUAR" }],
+  ariaLabel: "Prima o botão branco ou a tecla Enter para ir à galeria",
+});
+
+tutorialScreen.addMountStep(({ ui, isP1 }) => {
+  if (isP1) ui.setCornerHint({ text: "" });
 });
 
 tutorialScreen.beginFlexRow({
@@ -48,9 +41,6 @@ tutorialScreen.addText({
   marginBottom: 50,
 });
 
-
-
-
 tutorialScreen.beginFlexSection({ align: "left", gap: 14, marginTop: -20 });
 
 const tutIcon = {
@@ -59,7 +49,6 @@ const tutIcon = {
   objectFit: "contain",
 };
 
-/** Ícones walk / attention têm mais “ar” no PNG — sobe mais para alinhar com a 1.ª linha. */
 const tutIconTopTight = {
   ...tutIcon,
   marginTop: "calc(-0.42em - 6px)",
@@ -87,38 +76,11 @@ tutorialScreen.addText({
 });
 
 tutorialScreen.endFlexSection();
-
 tutorialScreen.endFlexRow();
 
-let tutorialEnterKeyHandler = null;
-let tutorialEnterListenerTimeout = null;
+tutorialScreen.addBinding((ctx) => (ctx.isP2 ? bindTutorialContinueKey(ctx) : () => {}));
 
 tutorialScreen.onEnter(({ ui, state }) => {
   const team = getTeam(state);
-  ui.addTeamScore(team.name, team.points);
-
-  if (tutorialEnterListenerTimeout) {
-    clearTimeout(tutorialEnterListenerTimeout);
-    tutorialEnterListenerTimeout = null;
-  }
-  /** Evita que o Enter usado no home para gravar o nome dispare logo `goGallery` neste ecrã. */
-  tutorialEnterListenerTimeout = window.setTimeout(() => {
-    tutorialEnterListenerTimeout = null;
-    tutorialEnterKeyHandler = (e) => {
-      if (e.key !== "Enter" || e.repeat) return;
-      ui.runAction("goGallery");
-    };
-    window.addEventListener("keydown", tutorialEnterKeyHandler);
-  }, 250);
-});
-
-tutorialScreen.onExit(() => {
-  if (tutorialEnterListenerTimeout) {
-    clearTimeout(tutorialEnterListenerTimeout);
-    tutorialEnterListenerTimeout = null;
-  }
-  if (tutorialEnterKeyHandler) {
-    window.removeEventListener("keydown", tutorialEnterKeyHandler);
-    tutorialEnterKeyHandler = null;
-  }
+  ui.addTeamScore(team.name, team.points, { teamCode: team.code });
 });

@@ -1,6 +1,19 @@
 import { resolveGalleryItems } from "./gallery.js";
 import { spotlightIndexForTick } from "./gallerySpotlight.js";
 import { createNoiseLevelWidget } from "./noiseLevel.js";
+import { getTeam } from "./team.js";
+
+export function buildCornerHintMarkup(buttons, { intro = "PRIME:", ariaLabel } = {}) {
+  const lines = [`${intro}<br>`];
+  for (const { color, label } of buttons) {
+    lines.push(
+      `<span class="ui-corner-hint-dot ui-corner-hint-dot--${color}" aria-hidden="true">⬤</span> ${label}<br>`
+    );
+  }
+  const html = lines.join("");
+  const fallbackAria = buttons.map((b) => b.label).join("; ");
+  return { html, ariaLabel: ariaLabel ?? fallbackAria };
+}
 
 function css(v) {
   return v == null ? "" : `${v}`;
@@ -10,7 +23,6 @@ function clamp01(n) {
   return Math.max(0, Math.min(1, n));
 }
 
-/** Texto visível no botão do quiz: sem letras A–D isoladas, sem "Opção A", sem prefixo "A. " / "B) " etc. */
 function quizOptionDisplayLabel(raw) {
   const t = String(raw ?? "").trim();
   if (!t) return "";
@@ -25,7 +37,7 @@ function quizOptionDisplayLabel(raw) {
 function justifyFromVAlign(vAlign) {
   if (vAlign === "top") return "flex-start";
   if (vAlign === "bottom") return "flex-end";
-  return "center"; // middle
+  return "center";
 }
 
 function alignFromHAlign(hAlign) {
@@ -40,7 +52,6 @@ function textAlignFromHAlign(hAlign) {
   return "center";
 }
 
-/** `***isto***` → <strong> sublinhado; `**isto**` → <strong>; resto texto puro. */
 function appendTextWithBoldSegments(container, text, strongWeight) {
   const s = text == null ? "" : String(text);
   const re = /\*\*\*([\s\S]*?)\*\*\*|\*\*([\s\S]*?)\*\*/g;
@@ -75,6 +86,7 @@ export class UI {
     this._countdownInterval = null;
     this._countdownEl = null;
     this._teamScoreEl = null;
+    this._teamIdentityEl = null;
     this._playerRoleBadgeEl = null;
     this._cornerHintBadgeEl = null;
     this._dockedMessageEl = null;
@@ -83,7 +95,6 @@ export class UI {
 
     this._screenEl = null;
     this._contentEl = null;
-    /** @type {HTMLElement[]} pilha de containers abertos (flex rows, shadow boxes, etc.); os add* acrescentam ao topo */
     this._containerStack = [];
 
     this.applyTheme(theme);
@@ -94,7 +105,6 @@ export class UI {
   }
 
   applyTheme(theme) {
-    // Minimal: map theme.colors.* to CSS variables if provided.
     const root = document.documentElement;
     const colors = theme?.colors ?? {};
     const mapping = {
@@ -119,7 +129,6 @@ export class UI {
     if (theme?.fontFamily) root.style.setProperty("--font", theme.fontFamily);
     if (theme?.text?.titleSize) root.style.setProperty("--title-size", theme.text.titleSize);
 
-    // Quiz: variáveis para customizar pergunta e opções (ids: quiz-question, quiz-option-0, …)
     const quiz = theme?.quiz;
     if (quiz?.question) {
       if (quiz.question.color) root.style.setProperty("--quiz-question-color", quiz.question.color);
@@ -159,6 +168,10 @@ export class UI {
       this._teamScoreEl.remove();
       this._teamScoreEl = null;
     }
+    if (this._teamIdentityEl) {
+      this._teamIdentityEl.remove();
+      this._teamIdentityEl = null;
+    }
     if (this._playerRoleBadgeEl) {
       this._playerRoleBadgeEl.remove();
       this._playerRoleBadgeEl = null;
@@ -185,11 +198,6 @@ export class UI {
     this.overlays.clear();
   }
 
-  /**
-   * Altera o fundo do ecrã atual para uma imagem.
-   * filename – nome em assets/images (ex.: "bg.png")
-   * url – caminho absoluto/relativo opcional (tem prioridade sobre filename)
-   */
   setScreenBackgroundImage({ filename, url, size = "cover", position = "center center", repeat = "no-repeat", color } = {}) {
     const screen = this._screenEl;
     if (!screen) return;
@@ -216,7 +224,6 @@ export class UI {
     const align = layout.align ?? {};
     const hAlign = align.horizontal ?? layout.hAlign ?? "center";
     let vAlign = align.vertical ?? layout.vAlign ?? "middle";
-    // API dos alunos usa "center"; internamente continuamos a usar "middle"
     if (vAlign === "center") vAlign = "middle";
 
     const screen = document.createElement("div");
@@ -255,7 +262,6 @@ export class UI {
     }
 
     if (layout.variant === "display") {
-      // Topo na vertical: elementos estáveis quando o countdown (ou outros blocos) aparece/desaparece
       screen.style.justifyContent = "flex-start";
       screen.style.alignItems = "center";
       const mw = layout.maxWidth;
@@ -327,9 +333,7 @@ export class UI {
     this._cornerHintBadgeEl = el;
   }
 
-  onResize() {
-    // No-op (flex layout). Kept for API stability.
-  }
+  onResize() {}
 
   runAction(actionName, payload) {
     if (!actionName) return;
@@ -509,40 +513,10 @@ export class UI {
     this._containerStack.push(box);
   }
 
-  /** Fecha a shadow box aberta por beginShadowBox(). */
   endShadowBox() {
     if (this._containerStack.length > 0) this._containerStack.pop();
   }
 
-  // ---------- Components ----------
-
-  /**
-   * @param {{
-   *   text?: string,
-   *   variant?: string,
-   *   align?: "top" | "bottom",
-   *   marginTop?: number | string,
-   *   marginBottom?: number | string,
-   *   marginLeft?: number | string,
-   *   marginRight?: number | string,
-   *   fontSize?: number | string,
-   *   paragraphGap?: number | string,
-   *   color?: string,
-   * }} opts
-   *   variant "title": texto sempre centrado na horizontal; `align` só afecta a vertical.
-   *   variant "body" (omissão): Jersey 15 por omissão (`theme.text.bodyFontFamily`).
-   *   variant "foreground": tamanho/line-height como "body", cor `var(--ink)`, `font-family: var(--font-sans)` (stack em style.css; não é sobrescrita por applyTheme).
-   *   variant "hand": como "foreground", com `font-family: var(--font-hand)` (Geo em style.css / Google Fonts).
-   *   `fontSize`: opcional; sobrescreve o tamanho definido pela variant (número em px, ou string CSS).
-   *   `color`: opcional; sobrescreve a cor da variant (ex. `var(--ink)` como em foreground/hand).
-   *   `paragraphGap`: opcional; separa o texto em parágrafos por `\n\n` (ou mais newlines) e aplica `margin-bottom` *entre* blocos; `\n` simples continua só a quebrar linha dentro do parágrafo.
-   *   Negrito: `**texto**`; negrito + sublinhado: `***texto***`.
-   *   Quebras de linha: caracteres `\n` no string (ex. template literals com Enter).
-   */
-  /**
-   * Cria o contentor de imagem (reutilizado por addImage e addText com leadingImage).
-   * @returns {HTMLDivElement | null}
-   */
   _createImageWrapElement({
     filename,
     size = 100,
@@ -896,7 +870,6 @@ export class UI {
       if (showThumbnails) {
         const img = document.createElement("img");
         img.alt = it.name ?? "thumbnail";
-        // Prefer explicit thumbnail URL; fall back to /assets/thumbnails/<name>.png
         if (it.thumbnail && typeof it.thumbnail === "string" && it.thumbnail.length > 0) {
           img.src = it.thumbnail;
         } else if (it.name) {
@@ -1164,18 +1137,10 @@ export class UI {
     this._ensureContent().appendChild(card);
   }
 
-  /**
-   * Configuração \"standard\" do ecrã de quiz. optionsLayout: "list" | "grid" (2x2).
-   * @param {any} state
-   * @param {{ onAnswerAction?: string, noiseAction?: string, threshold?: number, sensitivity?: number, backAction?: string, backLabel?: string, optionsLayout?: "list" | "grid" }} opts
-   */
   setupDefaultQuizScreen(state, opts = {}) {
-    const team = state.teamName || "Equipa";
-    const points = state.teams?.[team] ?? 0;
-    this.addTeamScore(team, points);
+    const team = getTeam(state);
+    this.addTeamScore(team.name, team.points, { teamCode: team.code });
 
-    // Layout: quiz à esquerda e barra de ruído à direita.
-    // hGap mais pequeno que o gap vertical: menos espaço entre opções e barra de ruído.
     this.beginFlexRow({ gap: 14, hGap: 8, justify: "center", align: "stretch" });
     this.beginFlexSection({ align: "left", flex: 1 });
     this.addQuizForVideo({
@@ -1199,41 +1164,52 @@ export class UI {
     });
     this.endFlexSection();
     this.endFlexRow();
-
-    // Intencionalmente sem botão "Voltar" no ecrã de quiz.
   }
 
-  /**
-   * Mostra no canto superior direito a pontuação da equipa atual (floating, não interfere no layout).
-   * @param {string} teamName
-   * @param {number} points
-   * @param {{ toolbarButtons?: Array<{ label?: string, action?: string, variant?: string }> }} [opts]
-   */
   addTeamScore(teamName, points, opts = {}) {
     if (this._teamScoreEl) this._teamScoreEl.remove();
+    if (this._teamIdentityEl) this._teamIdentityEl.remove();
     const name = teamName?.trim() || "—";
+    const code = String(opts.teamCode ?? "").trim().toUpperCase();
     const pts = Number(points);
     const toolbarButtons = opts.toolbarButtons;
 
-    const setTeamScoreParagraphs = (el, displayName, ptsVal) => {
+    const setTeamIdentityParagraphs = (el, displayName, displayCode) => {
       el.replaceChildren();
       const pName = document.createElement("p");
-      pName.textContent = `${displayName}:`;
+      pName.textContent = displayName;
+      el.appendChild(pName);
+      const pCode = document.createElement("p");
+      pCode.textContent = displayCode || "\u00a0";
+      el.appendChild(pCode);
+      el.setAttribute(
+        "aria-label",
+        displayCode ? `${displayName}, código ${displayCode}` : `${displayName}`
+      );
+    };
+
+    const setTeamScoreParagraphs = (el, ptsVal) => {
+      el.replaceChildren();
       const pPts = document.createElement("p");
       pPts.textContent = `${ptsVal} pts`;
-      el.appendChild(pName);
       el.appendChild(pPts);
-      el.setAttribute("aria-label", `${displayName}: ${ptsVal} pts`);
+      el.setAttribute("aria-label", `${ptsVal} pontos`);
     };
 
     if (toolbarButtons && toolbarButtons.length > 0) {
       const stack = document.createElement("div");
       stack.className = "ui-team-score-stack";
 
+      const identityEl = document.createElement("div");
+      identityEl.className = "ui-team-identity";
+      identityEl.setAttribute("aria-live", "polite");
+      setTeamIdentityParagraphs(identityEl, name, code);
+      stack.appendChild(identityEl);
+
       const scoreEl = document.createElement("div");
       scoreEl.className = "ui-team-score";
       scoreEl.setAttribute("aria-live", "polite");
-      setTeamScoreParagraphs(scoreEl, name, pts);
+      setTeamScoreParagraphs(scoreEl, pts);
       stack.appendChild(scoreEl);
 
       const toolbar = document.createElement("div");
@@ -1252,13 +1228,21 @@ export class UI {
 
       document.body.appendChild(stack);
       this._teamScoreEl = stack;
+      this._teamIdentityEl = identityEl;
       return;
     }
+
+    const identityEl = document.createElement("div");
+    identityEl.className = "ui-team-identity";
+    identityEl.setAttribute("aria-live", "polite");
+    setTeamIdentityParagraphs(identityEl, name, code);
+    document.body.appendChild(identityEl);
+    this._teamIdentityEl = identityEl;
 
     const el = document.createElement("div");
     el.className = "ui-team-score";
     el.setAttribute("aria-live", "polite");
-    setTeamScoreParagraphs(el, name, pts);
+    setTeamScoreParagraphs(el, pts);
     document.body.appendChild(el);
     this._teamScoreEl = el;
   }
@@ -1398,11 +1382,6 @@ export class UI {
     };
   }
 
-  /**
-   * Timer simples (contagem regressiva) para colocar acima do noise level.
-   * @param {{ seconds?: number, label?: string, onCompleteAction?: string, showZero?: boolean, dangerAlways?: boolean }} opts
-   *   dangerAlways – se true, o número usa sempre a cor de alerta (p.ex. contadores longos alinhados ao ecrã attention).
-   */
   addCountdownTimer({
     seconds = 30,
     label = "Tempo",
@@ -1410,7 +1389,6 @@ export class UI {
     showZero = true,
     dangerAlways = false,
   } = {}) {
-    // Clean any previous countdown instance.
     if (this._countdownInterval) {
       clearInterval(this._countdownInterval);
       this._countdownInterval = null;

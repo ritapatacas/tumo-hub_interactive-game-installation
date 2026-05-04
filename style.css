@@ -88,7 +88,8 @@ html, body {
 /* Dica opcional (ex.: botões físicos), canto inferior esquerdo;
    pontuação da equipa: mesmo formato (Press Start 2P, amarelo), canto superior direito */
 .ui-corner-hint-badge,
-.ui-team-score {
+.ui-team-score,
+.ui-team-identity {
   position: fixed;
   z-index: 1000;
   max-width: min(320px, calc(100vw - 48px));
@@ -119,6 +120,27 @@ html, body {
   top: 24px;
   text-align: right;
   text-transform: uppercase;
+}
+
+.ui-team-identity {
+  left: 24px;
+  top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 18px;
+  background: rgba(0, 0, 0, 0.28);
+  border-radius: 3px;
+  box-shadow: 0 50px 125px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(1.5px);
+  -webkit-backdrop-filter: blur(1.5px);
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.ui-team-identity p,
+.ui-team-score p {
+  margin: 0;
 }
 
 /* Dica mais larga (ex.: home — duas linhas com símbolos) */
