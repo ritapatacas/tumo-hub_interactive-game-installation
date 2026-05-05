@@ -10,7 +10,7 @@ homeScreen.setBackgroundImage({
 });
 
 homeScreen.beginShadowBox({ marginTop: 14, marginBottom: 33 });
-homeScreen.addText({ text: "Portfólio interativo | Game Dev", variant: "title" });
+homeScreen.addText({ text: "Comunicação sob Pressão", variant: "title" });
 homeScreen.endShadowBox();
 
 homeScreen.addCornerHint({

@@ -280,6 +280,25 @@ wss.on("connection", (ws) => {
         session.sharedState.teamCode = "";
       }
       broadcastState(sessionId);
+      return;
+    }
+
+    if (msg.type === "patch_shared_state") {
+      const sessionId = ws._sessionId || String(msg.sessionId || "default");
+      const session = ensureSession(sessionId);
+      const patch = toJsonSafe(msg.patch);
+      if (!patch || typeof patch !== "object" || Array.isArray(patch)) return;
+      session.sharedState = {
+        ...(session.sharedState && typeof session.sharedState === "object" ? session.sharedState : {}),
+        ...patch,
+      };
+      if (!session.sharedState.teams || typeof session.sharedState.teams !== "object") {
+        session.sharedState.teams = cloneTeams();
+      }
+      if (typeof session.sharedState.teamCode !== "string") {
+        session.sharedState.teamCode = "";
+      }
+      broadcastState(sessionId);
     }
   });
 

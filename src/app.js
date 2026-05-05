@@ -14,6 +14,12 @@ const ROLE_ONLY = {
   video: "p1",
   quiz: "p2",
 };
+const NOISE_SYNC_MIN_INTERVAL_MS = 120;
+const NOISE_SYNC_MIN_DELTA = 0.03;
+
+function clamp01(n) {
+  return Math.max(0, Math.min(1, Number(n) || 0));
+}
 
 function resolveVisibleScreen(globalScreen, role) {
   if (SHARED_SCREENS.has(globalScreen)) {
@@ -49,6 +55,8 @@ function extractSharedState(state) {
     gallerySeed: typeof state.gallerySeed === "number" ? state.gallerySeed : 0,
     galleryEpoch: typeof state.galleryEpoch === "number" ? state.galleryEpoch : 0,
     pendingQuizFeedbackDock: state.pendingQuizFeedbackDock ?? null,
+    noiseLevelP1: clamp01(state.noiseLevelP1),
+    noiseLevelP2: clamp01(state.noiseLevelP2),
   };
 }
 
@@ -66,6 +74,12 @@ function applySharedState(state, shared) {
   if (typeof shared.galleryEpoch === "number") state.galleryEpoch = shared.galleryEpoch;
   if (Object.prototype.hasOwnProperty.call(shared, "pendingQuizFeedbackDock")) {
     state.pendingQuizFeedbackDock = shared.pendingQuizFeedbackDock;
+  }
+  if (Object.prototype.hasOwnProperty.call(shared, "noiseLevelP1")) {
+    state.noiseLevelP1 = clamp01(shared.noiseLevelP1);
+  }
+  if (Object.prototype.hasOwnProperty.call(shared, "noiseLevelP2")) {
+    state.noiseLevelP2 = clamp01(shared.noiseLevelP2);
   }
 }
 
@@ -153,6 +167,8 @@ export async function createApp(mountEl, sessionConfig) {
     selectedVideoSrc: "",
     selectedVideoQuiz: null,
     videosData: [],
+    noiseLevelP1: 0,
+    noiseLevelP2: 0,
   };
 
   mergeDummyLeaderboardIfEnabled(state);
@@ -185,6 +201,25 @@ export async function createApp(mountEl, sessionConfig) {
   let currentGlobalPayload = null;
   let lastControllerLocalNavAt = 0;
   let lastPersistPromise = Promise.resolve();
+  let lastPublishedNoiseLevel = -1;
+  let lastPublishedNoiseAt = 0;
+
+  const noiseLevelKey = role === "p1" ? "noiseLevelP1" : "noiseLevelP2";
+
+  state.publishRoleNoiseLevel = (level, { force = false } = {}) => {
+    const safeLevel = clamp01(level);
+    state[noiseLevelKey] = safeLevel;
+
+    const now = Date.now();
+    const delta = Math.abs(safeLevel - lastPublishedNoiseLevel);
+    if (!force && delta < NOISE_SYNC_MIN_DELTA && now - lastPublishedNoiseAt < NOISE_SYNC_MIN_INTERVAL_MS) {
+      return;
+    }
+
+    lastPublishedNoiseLevel = safeLevel;
+    lastPublishedNoiseAt = now;
+    sync.publishSharedStatePatch({ [noiseLevelKey]: safeLevel });
+  };
 
   const persistTeams = (nextTeams = state.teams) => {
     const safeTeams = sanitizeTeams(nextTeams);
@@ -259,16 +294,11 @@ export async function createApp(mountEl, sessionConfig) {
   sync.onState((msg) => {
     const screenName = msg.screen || "home";
     const payload = msg.payload ?? null;
-    const echoSkip =
-      isController &&
-      screenName === currentGlobalScreen &&
-      payloadEqual(payload, currentGlobalPayload);
+    const sameGlobalScreen = screenName === currentGlobalScreen && payloadEqual(payload, currentGlobalPayload);
 
-    if (!echoSkip) {
-      applySharedState(state, msg.sharedState);
-      saveTeamsToStorage(state.teams ?? {});
-      mergeDummyLeaderboardIfEnabled(state);
-    }
+    applySharedState(state, msg.sharedState);
+    saveTeamsToStorage(state.teams ?? {});
+    mergeDummyLeaderboardIfEnabled(state);
 
     if (
       isController &&
@@ -279,7 +309,7 @@ export async function createApp(mountEl, sessionConfig) {
       return;
     }
 
-    if (echoSkip) {
+    if (sameGlobalScreen) {
       return;
     }
 

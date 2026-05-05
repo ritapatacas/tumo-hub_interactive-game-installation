@@ -6,6 +6,8 @@ export function createNoiseLevelWidget(container, opts = {}) {
   const threshold = clamp01(opts.threshold ?? 0.8);
   const sensitivity = Math.max(0.1, Number(opts.sensitivity) || 1);
   const onExceed = opts.onExceed ?? (() => {});
+  const onLevelChange = typeof opts.onLevelChange === "function" ? opts.onLevelChange : null;
+  const getSecondaryLevel = typeof opts.getSecondaryLevel === "function" ? opts.getSecondaryLevel : null;
 
   const wrap = document.createElement("div");
   wrap.className = "noise-level-wrap";
@@ -53,7 +55,11 @@ export function createNoiseLevelWidget(container, opts = {}) {
       sum += v * v;
     }
     const rms = data.length ? Math.sqrt(sum / data.length) / 128 : 0;
-    updateBar(Math.min(1, rms * 1.5));
+    const localLevel = Math.min(1, rms * 1.5);
+    const secondaryLevel = getSecondaryLevel ? clamp01(getSecondaryLevel()) : 0;
+    const combinedLevel = Math.max(localLevel, secondaryLevel);
+    onLevelChange?.({ localLevel, secondaryLevel, combinedLevel });
+    updateBar(combinedLevel);
     animationId = requestAnimationFrame(tick);
   }
 
@@ -80,6 +86,7 @@ export function createNoiseLevelWidget(container, opts = {}) {
       cancelAnimationFrame(animationId);
       if (stream) stream.getTracks().forEach((t) => t.stop());
       if (audioContext) audioContext.close();
+      onLevelChange?.({ localLevel: 0, secondaryLevel: 0, combinedLevel: 0 });
       wrap.remove();
     },
   };

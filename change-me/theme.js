@@ -21,7 +21,7 @@ const colors = {
 export const theme = {
   colors,
   text: {
-    titleSize: "80px",
+    titleSize: "60px",
     bodySize: "clamp(30px, 3.15vw, 30px)",
     titleFontFamily: "'Jersey 15', system-ui, sans-serif",
     bodyFontFamily: "'Jersey 15', system-ui, sans-serif",

@@ -284,13 +284,15 @@ export class UI {
     this._screenEl = screen;
     this._contentEl = content;
 
-    const role = document.body.dataset.role === "p1" ? "p1" : "p2";
-    const badge = document.createElement("div");
-    badge.className = "ui-player-role-badge";
-    badge.textContent = role === "p1" ? "PLAYER 1" : "PLAYER 2";
-    badge.setAttribute("aria-label", badge.textContent);
-    document.body.appendChild(badge);
-    this._playerRoleBadgeEl = badge;
+    if (document.body.dataset.interface !== "door") {
+      const role = document.body.dataset.role === "p1" ? "p1" : "p2";
+      const badge = document.createElement("div");
+      badge.className = "ui-player-role-badge";
+      badge.textContent = role === "p1" ? "PLAYER 1" : "PLAYER 2";
+      badge.setAttribute("aria-label", badge.textContent);
+      document.body.appendChild(badge);
+      this._playerRoleBadgeEl = badge;
+    }
   }
 
   /**
@@ -1160,6 +1162,10 @@ export class UI {
     this.addNoiseLevel({
       threshold: opts.threshold ?? 0.5,
       sensitivity: opts.sensitivity ?? 1,
+      onLevelChange:
+        typeof opts.onLevelChange === "function" ? (levels) => opts.onLevelChange(levels, state) : undefined,
+      getSecondaryLevel:
+        typeof opts.getSecondaryLevel === "function" ? () => opts.getSecondaryLevel(state) : undefined,
       onExceedAction: opts.noiseAction ?? "noisePenalty",
     });
     this.endFlexSection();
@@ -1333,7 +1339,7 @@ export class UI {
    * - onExceedAction: nome de uma ação a chamar quando há demasiado ruído.
    * - onExceed: callback opcional (sem argumentos) a chamar quando há demasiado ruído.
    * O threshold é tratado internamente (valor razoável por omissão).
-   * @param {{ threshold?: number, sensitivity?: number, onExceedAction?: string, onExceed?: () => void }} opts
+   * @param {{ threshold?: number, sensitivity?: number, onExceedAction?: string, onExceed?: () => void, onLevelChange?: ({ localLevel: number, secondaryLevel: number, combinedLevel: number }) => void, getSecondaryLevel?: () => number }} opts
    */
   addNoiseLevel(opts = {}) {
     if (this._noiseLevelDestroy) {
@@ -1346,6 +1352,8 @@ export class UI {
     const widget = createNoiseLevelWidget(this._ensureContent(), {
       threshold: opts.threshold ?? 0.5,
       sensitivity: opts.sensitivity ?? 1,
+      onLevelChange: opts.onLevelChange,
+      getSecondaryLevel: opts.getSecondaryLevel,
       onExceed: () => {
         if (onExceedCallback) onExceedCallback();
         if (action) runAction(action);

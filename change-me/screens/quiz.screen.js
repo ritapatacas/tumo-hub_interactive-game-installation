@@ -14,5 +14,9 @@ quizScreen.useDefaultQuiz({
   backAction: "goGallery",
   backLabel: "Voltar",
   sensitivity: 2,
+  onLevelChange: ({ localLevel }, state) => {
+    state.publishRoleNoiseLevel?.(localLevel);
+  },
+  getSecondaryLevel: (state) => state.noiseLevelP1 ?? 0,
   optionsLayout: "list",
 });

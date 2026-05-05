@@ -75,6 +75,16 @@ export class SessionSync {
     });
   }
 
+  publishSharedStatePatch(patch) {
+    this._send({
+      type: "patch_shared_state",
+      sessionId: this.sessionId,
+      role: this.role,
+      patch: patch ?? {},
+      sentAt: Date.now(),
+    });
+  }
+
   _emitConnection(connected) {
     this.connected = connected;
     if (typeof this._connectionHandler === "function") {

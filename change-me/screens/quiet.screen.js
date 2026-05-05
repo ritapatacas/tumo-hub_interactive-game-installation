@@ -54,7 +54,7 @@ quietScreen.beginFlexSection({
   justify: "flex-start",
 });
 
-quietScreen.addMountStep(({ ui, payload, isP1 }) => {
+quietScreen.addMountStep(({ ui, payload, isP1, state }) => {
   const bodyFontSize = "clamp(22px, 2.6vw, 36px)";
   if (isP1 && payload?.p1WhileP2Quiz) {
     ui.addText({
@@ -102,6 +102,9 @@ quietScreen.addMountStep(({ ui, payload, isP1 }) => {
     ui.addNoiseLevel({
       threshold: 0.5,
       sensitivity: 2,
+      onLevelChange: ({ localLevel }) => {
+        state.publishRoleNoiseLevel?.(localLevel);
+      },
     });
   } else {
     ui.addNoiseLevelShell();

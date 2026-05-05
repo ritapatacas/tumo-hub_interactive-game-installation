@@ -62,6 +62,11 @@ export function endGameAndReset(ctx) {
   s.pendingQuizFeedbackDock = null;
   s.gallerySeed = 0;
   s.galleryEpoch = 0;
+  s.noiseLevelP1 = 0;
+  s.noiseLevelP2 = 0;
+  if (typeof s.publishRoleNoiseLevel === "function") {
+    s.publishRoleNoiseLevel(0, { force: true });
+  }
   if (Object.prototype.hasOwnProperty.call(s, "gallerySpotlightIndex")) {
     delete s.gallerySpotlightIndex;
   }
