@@ -16,13 +16,13 @@ const ROLE_ONLY = {
 };
 const NOISE_SYNC_MIN_INTERVAL_MS = 120;
 const NOISE_SYNC_MIN_DELTA = 0.03;
-const INITIAL_SCREEN = "home";
+const INITIAL_SCREEN = "tutorial";
 
 function clamp01(n) {
   return Math.max(0, Math.min(1, Number(n) || 0));
 }
 
-function resolveVisibleScreen(globalScreen, role) {
+function resolveVisibleScreen(globalScreen, role, sharedState = null) {
   if (SHARED_SCREENS.has(globalScreen)) {
     return { name: globalScreen, payload: null };
   }
@@ -37,6 +37,9 @@ function resolveVisibleScreen(globalScreen, role) {
     return { name: "attention", payload: { p1VideoListen: true } };
   }
   if (globalScreen === "quiz" && role === "p2") {
+    if (sharedState?.pendingQuizFeedbackDock) {
+      return { name: "leaderboard", payload: null };
+    }
     return {
       name: "quiet",
       payload: { p2WhileP1Quiz: true },
@@ -146,6 +149,16 @@ async function saveTeamsToServer(apiBaseUrl, teams) {
   return sanitizeTeams(data?.teams);
 }
 
+async function loadSessionStateFromServer(apiBaseUrl, sessionId) {
+  const url = new URL(`${apiBaseUrl}/api/session-state`);
+  url.searchParams.set("sessionId", sessionId || "default");
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Could not load session state (${res.status})`);
+  }
+  return res.json();
+}
+
 export async function createApp(mountEl, sessionConfig) {
   const interfaceConfig = resolveInterfaceConfig(sessionConfig?.interfaceName);
   const { theme, actions, screens } = interfaceConfig;
@@ -206,10 +219,15 @@ export async function createApp(mountEl, sessionConfig) {
 
   let currentGlobalScreen = INITIAL_SCREEN;
   let currentGlobalPayload = null;
+  let currentVisibleScreen = null;
+  let currentVisiblePayload = null;
   let lastControllerLocalNavAt = 0;
   let lastPersistPromise = Promise.resolve();
   let lastPublishedNoiseLevel = -1;
   let lastPublishedNoiseAt = 0;
+  let verifyPeerScreenTimerId = null;
+  let lastRemoteStateAt = 0;
+  let sessionPollTimerId = null;
 
   const noiseLevelKey = role === "p1" ? "noiseLevelP1" : "noiseLevelP2";
 
@@ -245,12 +263,83 @@ export async function createApp(mountEl, sessionConfig) {
     return lastPersistPromise;
   };
 
+  const schedulePeerScreenVerification = (reason = "screen_change") => {
+    if (verifyPeerScreenTimerId) {
+      clearTimeout(verifyPeerScreenTimerId);
+    }
+    verifyPeerScreenTimerId = setTimeout(() => {
+      verifyPeerScreenTimerId = null;
+      sync.requestState(reason);
+    }, 120);
+  };
+
   const renderGlobal = (screenName, payload) => {
     currentGlobalScreen = screenName;
     currentGlobalPayload = payload ?? null;
-    const visible = resolveVisibleScreen(screenName, role);
+    const visible = resolveVisibleScreen(screenName, role, state);
     const finalPayload = visible.payload ?? currentGlobalPayload;
+    const visibleChanged =
+      visible.name !== currentVisibleScreen || !payloadEqual(finalPayload, currentVisiblePayload);
+    currentVisibleScreen = visible.name;
+    currentVisiblePayload = finalPayload ?? null;
+    if (visibleChanged) {
+      schedulePeerScreenVerification("visible_screen_changed");
+    }
     return sm.goTo(visible.name, finalPayload, { fromSync: true });
+  };
+
+  state.forceVisibleScreen = (screenName, payload = null) => renderGlobal(screenName, payload);
+
+  const applyRemoteStateMessage = (msg) => {
+    const screenName = msg.screen || INITIAL_SCREEN;
+    const payload = msg.payload ?? null;
+    const updatedAt = typeof msg.updatedAt === "number" ? msg.updatedAt : Date.now();
+
+    if (updatedAt < lastRemoteStateAt) {
+      return;
+    }
+
+    applySharedState(state, msg.sharedState);
+    saveTeamsToStorage(state.teams ?? {});
+    mergeDummyLeaderboardIfEnabled(state);
+
+    const sameGlobalScreen = screenName === currentGlobalScreen && payloadEqual(payload, currentGlobalPayload);
+    const visible = resolveVisibleScreen(screenName, role, state);
+    const nextVisiblePayload = visible.payload ?? payload;
+    const sameVisibleScreen =
+      visible.name === currentVisibleScreen && payloadEqual(nextVisiblePayload, currentVisiblePayload);
+
+    if (isController && lastControllerLocalNavAt > 0 && updatedAt < lastControllerLocalNavAt) {
+      return;
+    }
+
+    lastRemoteStateAt = updatedAt;
+
+    if (sameGlobalScreen && sameVisibleScreen) {
+      return;
+    }
+
+    renderGlobal(screenName, payload);
+  };
+
+  const scheduleSessionStatePoll = () => {
+    if (role !== "p2") return;
+    if (sessionPollTimerId) {
+      clearTimeout(sessionPollTimerId);
+    }
+    sessionPollTimerId = setTimeout(async () => {
+      sessionPollTimerId = null;
+      try {
+        const msg = await loadSessionStateFromServer(apiBaseUrl, sessionConfig?.sessionId || "default");
+        if (msg?.type === "state_update") {
+          applyRemoteStateMessage(msg);
+        }
+      } catch (error) {
+        console.warn("Could not poll session state", error);
+      } finally {
+        scheduleSessionStatePoll();
+      }
+    }, 700);
   };
 
   const sm = new ScreenManager({
@@ -305,31 +394,11 @@ export async function createApp(mountEl, sessionConfig) {
   });
 
   sync.onState((msg) => {
-    const screenName = msg.screen || INITIAL_SCREEN;
-    const payload = msg.payload ?? null;
-    const sameGlobalScreen = screenName === currentGlobalScreen && payloadEqual(payload, currentGlobalPayload);
-
-    applySharedState(state, msg.sharedState);
-    saveTeamsToStorage(state.teams ?? {});
-    mergeDummyLeaderboardIfEnabled(state);
-
-    if (
-      isController &&
-      lastControllerLocalNavAt > 0 &&
-      typeof msg.updatedAt === "number" &&
-      msg.updatedAt < lastControllerLocalNavAt
-    ) {
-      return;
-    }
-
-    if (sameGlobalScreen) {
-      return;
-    }
-
-    renderGlobal(screenName, payload);
+    applyRemoteStateMessage(msg);
   });
 
   sync.connect();
+  scheduleSessionStatePoll();
   if (isController) {
     await lastPersistPromise;
   }

@@ -85,6 +85,16 @@ export class SessionSync {
     });
   }
 
+  requestState(reason = "screen_change") {
+    this._send({
+      type: "request_state",
+      sessionId: this.sessionId,
+      role: this.role,
+      reason,
+      sentAt: Date.now(),
+    });
+  }
+
   _emitConnection(connected) {
     this.connected = connected;
     if (typeof this._connectionHandler === "function") {

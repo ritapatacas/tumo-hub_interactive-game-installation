@@ -88,6 +88,7 @@ function ensureSession(sessionId) {
     sessions.set(sessionId, {
       screen: "home",
       payload: null,
+      updatedAt: Date.now(),
       sharedState: {
         teamName: "",
         teamCode: "",
@@ -223,6 +224,20 @@ async function handleRequest(req, res) {
     return;
   }
 
+  if (url.pathname === "/api/session-state" && req.method === "GET") {
+    const sessionId = String(url.searchParams.get("sessionId") || "default");
+    const session = ensureSession(sessionId);
+    sendJson(res, 200, {
+      type: "state_update",
+      sessionId,
+      screen: session.screen,
+      payload: session.payload,
+      sharedState: session.sharedState,
+      updatedAt: session.updatedAt,
+    });
+    return;
+  }
+
   sendJson(res, 404, { error: "Not found" });
 }
 
@@ -235,7 +250,7 @@ function broadcastState(sessionId) {
     screen: session.screen,
     payload: session.payload,
     sharedState: session.sharedState,
-    updatedAt: Date.now(),
+    updatedAt: session.updatedAt,
   };
   for (const client of session.clients) {
     send(client, message);
@@ -272,6 +287,7 @@ wss.on("connection", (ws) => {
       const session = ensureSession(sessionId);
       session.screen = String(msg.screen || "home");
       session.payload = toJsonSafe(msg.payload) ?? null;
+      session.updatedAt = Date.now();
       session.sharedState = toJsonSafe(msg.sharedState) ?? {};
       if (!session.sharedState.teams || typeof session.sharedState.teams !== "object") {
         session.sharedState.teams = cloneTeams();
@@ -288,6 +304,7 @@ wss.on("connection", (ws) => {
       const session = ensureSession(sessionId);
       const patch = toJsonSafe(msg.patch);
       if (!patch || typeof patch !== "object" || Array.isArray(patch)) return;
+      session.updatedAt = Date.now();
       session.sharedState = {
         ...(session.sharedState && typeof session.sharedState === "object" ? session.sharedState : {}),
         ...patch,
@@ -298,6 +315,12 @@ wss.on("connection", (ws) => {
       if (typeof session.sharedState.teamCode !== "string") {
         session.sharedState.teamCode = "";
       }
+      broadcastState(sessionId);
+      return;
+    }
+
+    if (msg.type === "request_state") {
+      const sessionId = ws._sessionId || String(msg.sessionId || "default");
       broadcastState(sessionId);
     }
   });

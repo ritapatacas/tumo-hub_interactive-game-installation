@@ -627,5 +627,231 @@
         ]
       }
     }
+  },
+  "#AKKH": {
+    "code": "#AKKH",
+    "name": "boa",
+    "points": 0,
+    "viewedVideoIds": [
+      "LucasSeco"
+    ],
+    "answeredQuestionIds": [
+      "LucasSeco::Pergunta provisória: revê este vídeo e substitui esta pergunta depois."
+    ],
+    "quizHistory": {
+      "LucasSeco": {
+        "LucasSeco::Pergunta provisória: revê este vídeo e substitui esta pergunta depois.": [
+          false
+        ]
+      }
+    }
+  },
+  "#4ZTF": {
+    "code": "#4ZTF",
+    "name": "mais 1",
+    "points": 0,
+    "viewedVideoIds": [
+      "InesGamboa"
+    ],
+    "answeredQuestionIds": [
+      "InesGamboa::Quando o personagem salta, aparece:"
+    ],
+    "quizHistory": {
+      "InesGamboa": {
+        "InesGamboa::Quando o personagem salta, aparece:": [
+          true
+        ]
+      }
+    }
+  },
+  "#SHZY": {
+    "code": "#SHZY",
+    "name": "test",
+    "points": 0,
+    "viewedVideoIds": [
+      "InesGamboa"
+    ],
+    "answeredQuestionIds": [
+      "InesGamboa::Quando o personagem salta, aparece:"
+    ],
+    "quizHistory": {
+      "InesGamboa": {
+        "InesGamboa::Quando o personagem salta, aparece:": [
+          false
+        ]
+      }
+    }
+  },
+  "#52YP": {
+    "code": "#52YP",
+    "name": "test",
+    "points": 0,
+    "viewedVideoIds": [
+      "RafaelCarvalho"
+    ],
+    "answeredQuestionIds": [
+      "RafaelCarvalho::Pergunta provisória: revê este vídeo e substitui esta pergunta depois."
+    ],
+    "quizHistory": {
+      "RafaelCarvalho": {
+        "RafaelCarvalho::Pergunta provisória: revê este vídeo e substitui esta pergunta depois.": [
+          false
+        ]
+      }
+    }
+  },
+  "#ZEQ5": {
+    "code": "#ZEQ5",
+    "name": "test",
+    "points": 0,
+    "viewedVideoIds": [
+      "RafaelCarvalho"
+    ],
+    "answeredQuestionIds": [
+      "RafaelCarvalho::Pergunta provisória: revê este vídeo e substitui esta pergunta depois."
+    ],
+    "quizHistory": {
+      "RafaelCarvalho": {
+        "RafaelCarvalho::Pergunta provisória: revê este vídeo e substitui esta pergunta depois.": [
+          false
+        ]
+      }
+    }
+  },
+  "#8BUA": {
+    "code": "#8BUA",
+    "name": "test",
+    "points": 0,
+    "viewedVideoIds": [
+      "ArturLeal"
+    ],
+    "answeredQuestionIds": [
+      "ArturLeal::Pergunta provisória: revê este vídeo e substitui esta pergunta depois."
+    ],
+    "quizHistory": {
+      "ArturLeal": {
+        "ArturLeal::Pergunta provisória: revê este vídeo e substitui esta pergunta depois.": [
+          false
+        ]
+      }
+    }
+  },
+  "#6QCQ": {
+    "code": "#6QCQ",
+    "name": "test",
+    "points": 0,
+    "viewedVideoIds": [
+      "DiogoLopes"
+    ],
+    "answeredQuestionIds": [
+      "DiogoLopes::Pergunta provisória: revê este vídeo e substitui esta pergunta depois."
+    ],
+    "quizHistory": {
+      "DiogoLopes": {
+        "DiogoLopes::Pergunta provisória: revê este vídeo e substitui esta pergunta depois.": [
+          false
+        ]
+      }
+    }
+  },
+  "#ZPLZ": {
+    "code": "#ZPLZ",
+    "name": "boa",
+    "points": 0,
+    "viewedVideoIds": [
+      "LucasSeco"
+    ],
+    "answeredQuestionIds": [
+      "LucasSeco::Pergunta provisória: revê este vídeo e substitui esta pergunta depois."
+    ],
+    "quizHistory": {
+      "LucasSeco": {
+        "LucasSeco::Pergunta provisória: revê este vídeo e substitui esta pergunta depois.": [
+          false
+        ]
+      }
+    }
+  },
+  "#C6SC": {
+    "code": "#C6SC",
+    "name": "boa",
+    "points": 0,
+    "viewedVideoIds": [
+      "AntonioMariaPereira"
+    ],
+    "answeredQuestionIds": [
+      "AntonioMariaPereira::Quando o jogo começa qual roupa o esqueleto usa?"
+    ],
+    "quizHistory": {
+      "AntonioMariaPereira": {
+        "AntonioMariaPereira::Quando o jogo começa qual roupa o esqueleto usa?": [
+          true
+        ]
+      }
+    }
+  },
+  "#PM6Q": {
+    "code": "#PM6Q",
+    "name": "boa",
+    "points": 0,
+    "viewedVideoIds": [
+      "InesGamboa"
+    ],
+    "answeredQuestionIds": [
+      "InesGamboa::Quantos barcos naufragados aparecem?"
+    ],
+    "quizHistory": {
+      "InesGamboa": {
+        "InesGamboa::Quantos barcos naufragados aparecem?": [
+          false
+        ]
+      }
+    }
+  },
+  "#XU8V": {
+    "code": "#XU8V",
+    "name": "boa",
+    "points": 0,
+    "viewedVideoIds": [
+      "RafaelCarvalho"
+    ],
+    "answeredQuestionIds": [],
+    "quizHistory": {}
+  },
+  "#QS55": {
+    "code": "#QS55",
+    "name": "boa",
+    "points": 0,
+    "viewedVideoIds": [
+      "AntonioMariaPereira"
+    ],
+    "answeredQuestionIds": [
+      "AntonioMariaPereira::Quantas moedas é preciso para desbloquear a segunda area?"
+    ],
+    "quizHistory": {
+      "AntonioMariaPereira": {
+        "AntonioMariaPereira::Quantas moedas é preciso para desbloquear a segunda area?": [
+          true
+        ]
+      }
+    }
+  },
+  "#5UT3": {
+    "code": "#5UT3",
+    "name": "Equipa",
+    "points": 0,
+    "viewedVideoIds": [
+      "JonasKozaka"
+    ],
+    "answeredQuestionIds": [
+      "JonasKozaka::Pergunta provisória: revê este vídeo e substitui esta pergunta depois."
+    ],
+    "quizHistory": {
+      "JonasKozaka": {
+        "JonasKozaka::Pergunta provisória: revê este vídeo e substitui esta pergunta depois.": [
+          false
+        ]
+      }
+    }
   }
 }

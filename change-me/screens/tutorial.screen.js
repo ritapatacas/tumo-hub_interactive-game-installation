@@ -10,7 +10,7 @@ const tutStepText = {
 
 export let tutorialScreen = new Screen("tutorial");
 
-tutorialScreen.setLayout({ gap: 0, maxWidth: 590, vAlign: "top", marginTop: "25vh" });
+tutorialScreen.setLayout({ gap: 0, maxWidth: 600, vAlign: "top", marginTop: "25vh" });
 tutorialScreen.setBackgroundImage({
   filename: "bg-06.png",
   size: "cover",
@@ -28,7 +28,7 @@ tutorialScreen.addMountStep(({ ui, isP2 }) => {
 });
 
 tutorialScreen.beginFlexRow({
-  gap: 32,
+  gap: 42,
   hGap: 340,
   align: "left",
 });
@@ -38,11 +38,11 @@ tutorialScreen.addText({
   fontSize: "clamp(36px, 5.5vw, 64px)",
   align: "top",
   color: "var(--ink)",
-  marginTop: -28,
+  marginTop: -60,
   marginBottom: 50,
 });
 
-tutorialScreen.beginFlexSection({ align: "left", gap: 22, marginTop: -20 });
+tutorialScreen.beginFlexSection({ align: "left", gap: 22, marginTop: -50 });
 
 const tutIcon = {
   size: 20,
@@ -52,14 +52,21 @@ const tutIcon = {
 
 const tutIconTopTight = {
   ...tutIcon,
-  marginTop: "calc(-0.1em - 6px)",
+  marginTop: "calc(-0.10em - 20px)",
 };
 
 tutorialScreen.addText({
-  text: "**Player 2** vai para o outro lado da sala e escolhe o vídeo da ronda.",
+  text: "**Player 2** vai para o outro lado da sala.",
   leadingImage: { filename: "walk.png", ...tutIconTopTight },
   ...tutStepText,
 });
+
+tutorialScreen.addText({
+  text: "**Player 1** escolhe o vídeo da ronda.",
+  leadingImage: { filename: "manual.png", ...tutIconTopTight },
+  ...tutStepText,
+});
+
 tutorialScreen.addText({
   text: "**Player 2** vê o vídeo e descreve tudo ao **Player 1**.",
   leadingImage: { filename: "talk.png", ...tutIcon },

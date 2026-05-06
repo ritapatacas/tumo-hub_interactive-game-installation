@@ -17,6 +17,12 @@ homeScreen.addText({
   fontWeight: 500,
   letterSpacing: "0.03em",
 });
+homeScreen.addText({
+  text: "Portfólio Interativo de Jogos",
+  variant: "hand",
+  fontSize: "clamp(32px, 2.8vw, 42px)",
+  color: "#56A0C1",
+});
 homeScreen.endShadowBox();
 
 homeScreen.addCornerHint({
@@ -40,7 +46,7 @@ homeScreen.addMountStep(({ ui, isP2 }) => {
   }
   ui.addText({
     text: "Escolhe um nome para a tua equipa (ou escreve o teu código)",
-    marginTop: 30,
+    marginTop: 20,
     variant: "body",
     fontSize: "clamp(26px, 3vw, 38px)",
   });

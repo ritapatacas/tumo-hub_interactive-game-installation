@@ -97,7 +97,7 @@ quietScreen.addMountStep(({ ui, payload, isP2, state }) => {
 });
 quietScreen.endFlexSection();
 
-quietScreen.addMountStep(({ ui, payload, isP2 }) => {
+quietScreen.addMountStep(({ ui, payload, isP2, state }) => {
   if (!isP2) return;
   ui.beginFlexSection({
     align: "left",
@@ -138,7 +138,19 @@ quietScreen.onKeyDown("Enter", "advanceFromQuiet", {
 quietScreen.onEnter(({ ui, state, payload, isP2 }) => {
   const team = getTeam(state);
   ui.addTeamScore(team.name, team.points, { teamCode: team.code });
-  if (isP2 && payload?.p2WhileP1Quiz) return;
+  if (state.__p2QuizAnsweredWatchId) {
+    clearInterval(state.__p2QuizAnsweredWatchId);
+    state.__p2QuizAnsweredWatchId = null;
+  }
+  if (isP2 && payload?.p2WhileP1Quiz) {
+    state.__p2QuizAnsweredWatchId = setInterval(() => {
+      if (!state.pendingQuizFeedbackDock) return;
+      clearInterval(state.__p2QuizAnsweredWatchId);
+      state.__p2QuizAnsweredWatchId = null;
+      state.forceVisibleScreen?.("leaderboard");
+    }, 150);
+    return;
+  }
   ui.addCountdownTimer({
     seconds: 10,
     label: "Tempo",
@@ -150,4 +162,10 @@ quietScreen.onEnter(({ ui, state, payload, isP2 }) => {
     ui._countdownEl.style.marginTop = "auto";
     ui._countdownEl.style.marginBottom = "70px";
   }
+});
+
+quietScreen.onExit(({ state }) => {
+  if (!state.__p2QuizAnsweredWatchId) return;
+  clearInterval(state.__p2QuizAnsweredWatchId);
+  state.__p2QuizAnsweredWatchId = null;
 });

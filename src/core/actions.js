@@ -38,13 +38,16 @@ export function advanceFromAttentionToVideo(ctx) {
 
 export function advanceFromQuietToQuiz(ctx) {
   clearQuietTimer(ctx.state);
+  ctx.state.pendingQuizFeedbackDock = null;
   ctx.goTo("quiz");
 }
 
 export function startQuietThenQuiz(ctx) {
   clearQuietTimer(ctx.state);
+  ctx.state.pendingQuizFeedbackDock = null;
   ctx.goTo("quiet");
   ctx.state.__quietTimerId = setTimeout(() => {
+    ctx.state.pendingQuizFeedbackDock = null;
     ctx.goTo("quiz");
     ctx.state.__quietTimerId = null;
   }, 10000);
@@ -166,6 +169,7 @@ export function applyQuizAnswered(ctx, opts) {
 }
 
 export function applyQuizTimeout(ctx) {
+  ctx.state.pendingQuizFeedbackDock = null;
   ctx.ui.showMessage("Tempo esgotado. 0 pontos.", { type: "error" });
   ctx.state.gallerySeed = (Math.random() * 0x7fffffff) | 0;
   ctx.state.galleryEpoch = Date.now();
