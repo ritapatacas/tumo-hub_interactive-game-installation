@@ -16,6 +16,7 @@ const ROLE_ONLY = {
 };
 const NOISE_SYNC_MIN_INTERVAL_MS = 120;
 const NOISE_SYNC_MIN_DELTA = 0.03;
+const INITIAL_SCREEN = "home";
 
 function clamp01(n) {
   return Math.max(0, Math.min(1, Number(n) || 0));
@@ -173,20 +174,26 @@ export async function createApp(mountEl, sessionConfig) {
 
   mergeDummyLeaderboardIfEnabled(state);
 
-  const res = await fetch("/perguntas.json");
+  const res = await fetch("/assets/data.json");
   if (res.ok) {
     const raw = await res.json();
-    const entries = Object.values(raw ?? {});
+    const entries = Array.isArray(raw?.videos)
+      ? raw.videos
+      : Object.values(raw ?? {});
 
-    state.videosData = entries.map((entry, index) => {
-      const id = entry.id || `video-${index + 1}`;
-      return {
-        id,
-        quiz: entry.quiz ?? [],
-        videoPath: `/assets/videos/${id}.mp4`,
-        thumbnailPath: `/assets/thumbnails/${id}.png`,
-      };
-    });
+    state.videosData = entries
+      .filter((entry) => entry && typeof entry === "object")
+      .filter((entry) => typeof entry.videoPath === "string" && entry.videoPath.trim() !== "")
+      .map((entry, index) => {
+        const id = entry.id || `video-${index + 1}`;
+        return {
+          id,
+          quiz: Array.isArray(entry.quiz) ? entry.quiz : [],
+          moreQuestions: Array.isArray(entry.moreQuestions) ? entry.moreQuestions : [],
+          videoPath: entry.videoPath,
+          thumbnailPath: entry.thumbnailPath || `/assets/thumbnails/${id}.png`,
+        };
+      });
   }
 
   const overlays = createOverlays(mountEl);
@@ -197,7 +204,7 @@ export async function createApp(mountEl, sessionConfig) {
     wsUrl: sessionConfig?.wsUrl,
   });
 
-  let currentGlobalScreen = "home";
+  let currentGlobalScreen = INITIAL_SCREEN;
   let currentGlobalPayload = null;
   let lastControllerLocalNavAt = 0;
   let lastPersistPromise = Promise.resolve();
@@ -289,10 +296,16 @@ export async function createApp(mountEl, sessionConfig) {
 
   sync.onConnection(({ connected }) => {
     document.body.dataset.connection = connected ? "connected" : "disconnected";
+    if (!connected || !isController) return;
+    sync.publishScreen({
+      screen: currentGlobalScreen,
+      payload: currentGlobalPayload,
+      sharedState: extractSharedState(state),
+    });
   });
 
   sync.onState((msg) => {
-    const screenName = msg.screen || "home";
+    const screenName = msg.screen || INITIAL_SCREEN;
     const payload = msg.payload ?? null;
     const sameGlobalScreen = screenName === currentGlobalScreen && payloadEqual(payload, currentGlobalPayload);
 
@@ -319,13 +332,8 @@ export async function createApp(mountEl, sessionConfig) {
   sync.connect();
   if (isController) {
     await lastPersistPromise;
-    sync.publishScreen({
-      screen: currentGlobalScreen,
-      payload: currentGlobalPayload,
-      sharedState: extractSharedState(state),
-    });
   }
 
-  renderGlobal("home", null);
+  renderGlobal(INITIAL_SCREEN, null);
   window.addEventListener("resize", () => ui.onResize());
 }

@@ -5,7 +5,7 @@ export let quizScreen = new Screen("quiz");
 quizScreen.setBackgroundImage({
   filename: "bg-03.png",
   size: "cover",
-  position: "center bottom",
+  position: "center center",
 });
 
 quizScreen.useDefaultQuiz({

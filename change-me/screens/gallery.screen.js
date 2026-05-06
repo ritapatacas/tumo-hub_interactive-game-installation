@@ -17,6 +17,7 @@ galleryScreen.setBackgroundImage({
 
 galleryScreen.addSpotlightGallery({
   columns: 3,
+  rows: 2,
   variant: "thumbnails",
 });
 

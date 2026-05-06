@@ -1,6 +1,15 @@
 import { Screen } from "../../src/core/Screen.js";
 import { getTeam } from "../../src/core/team.js";
 
+function applyAttentionCountdownSizing(ui) {
+  const countdown = ui._countdownEl;
+  if (!countdown) return;
+  const labelEl = countdown.querySelector(".ui-quiz-countdown-label");
+  const valueEl = countdown.querySelector(".ui-quiz-countdown-value");
+  if (labelEl) labelEl.style.fontSize = "15px";
+  if (valueEl) valueEl.style.fontSize = "clamp(32px, 5.8vw, 46px)";
+}
+
 export let quietScreen = new Screen("quiet");
 
 quietScreen.setLayout({
@@ -9,6 +18,7 @@ quietScreen.setLayout({
   variant: "display",
   marginTop: "25vh",
   maxContentHeight: "min(56vh, 100%)",
+  maxWidth: "62vw",
 });
 
 quietScreen.setBackgroundImage({
@@ -20,8 +30,10 @@ quietScreen.setBackgroundImage({
 quietScreen.addText({
   text: "Chiu!",
   variant: "title",
+  fontSize: "clamp(46px, 6.5vw, 78px)",
   vAlign: "top",
-  marginTop: "clamp(20px, 3.5vh, 40px)",
+  marginTop: "clamp(5px, 2vh, 20px)",
+  marginBottom: "clamp(10px, 3.5vh, 30px)",
 });
 
 quietScreen.addCornerHint({
@@ -41,7 +53,7 @@ quietScreen.beginFlexRow({
 quietScreen.beginFlexSection({ align: "center", flex: 3, gap: 0, marginRight: 0 });
 quietScreen.addImage({
   filename: "quiet.png",
-  size: 50,
+  size: 42,
   slotAspectRatio: "1 / 1",
   align: "center",
 });
@@ -52,30 +64,34 @@ quietScreen.beginFlexSection({
   flex: 5,
   gap: 0,
   justify: "flex-start",
+  minWidth: "0",
 });
 
 quietScreen.addMountStep(({ ui, payload, isP1, state }) => {
-  const bodyFontSize = "clamp(22px, 2.6vw, 36px)";
+  const bodyFontSize = "clamp(26px, 3vw, 36px)";
   if (isP1 && payload?.p1WhileP2Quiz) {
     ui.addText({
       text: "O Player 2 está a responder ao quiz.",
       variant: "body",
       fontSize: bodyFontSize,
-      marginTop: 12,
+      marginTop: 24,
+      marginRight: 60,
     });
   } else if (isP1) {
     ui.addText({
       text: "Já não vão poder falar!\nSe forem apanhados serão descontados pontos!",
       variant: "body",
       fontSize: bodyFontSize,
-      marginTop: 12,
+      marginTop: 24,
+      marginRight: 60,
     });
   } else {
     ui.addText({
       text: "Já não vão poder falar!\nSe forem apanhados serão descontados pontos!\n\nTens 10 segundos para responder à pergunta.",
       variant: "body",
       fontSize: bodyFontSize,
-      marginTop: 12,
+      marginTop: 24,
+      marginRight: 60,
     });
   }
 });
@@ -99,6 +115,7 @@ quietScreen.addMountStep(({ ui, payload, isP1 }) => {
       onCompleteAction: "",
       showZero: true,
     });
+    applyAttentionCountdownSizing(ui);
     ui.addNoiseLevel({
       threshold: 0.5,
       sensitivity: 2,
@@ -128,4 +145,9 @@ quietScreen.onEnter(({ ui, state, payload, isP1 }) => {
     showZero: false,
     dangerAlways: true,
   });
+  applyAttentionCountdownSizing(ui);
+  if (ui._countdownEl) {
+    ui._countdownEl.style.marginTop = "auto";
+    ui._countdownEl.style.marginBottom = "70px";
+  }
 });

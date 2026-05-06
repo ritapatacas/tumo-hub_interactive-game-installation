@@ -2,90 +2,209 @@
   "videos": [
     {
       "id": "InesGamboa",
-      "videoPath": "/assets/videos/InesGamboa.mp4",
+      "videoPath": "/assets/videos/InesGamboa-original.mp4",
       "thumbnailPath": "/assets/thumbnails/InesGamboa.png",
       "quiz": [
         {
-          "text": "Sobre o que fala este vídeo?",
-          "options": ["Opção A", "Opção B", "Opção C", "Opção D"],
-          "correctIndex": 0
+          "text": "O que está em cima do tesouro? ",
+          "options": ["A - Sapo", "B - Boneco de madeira", "C - Esqueleto", "D - Cão"],
+          "correctIndex": 2
         },
         {
-          "text": "Qual a mensagem principal?",
-          "options": ["Uma", "Duas", "Três", "Quatro"],
+          "text": "Quantos barcos naufragados aparecem?",
+          "options": ["A - 1", "B - 2", "C - 3.5", "D - 0"],
           "correctIndex": 1
         },
         {
-          "text": "Como classificarias o conteúdo?",
-          "options": ["Excelente", "Bom", "Razoável", "Fraco"],
+          "text": "Quando o personagem salta, aparece:",
+          "options": ["A - Asadelta", "B - Avião", "C - Balão", "D - Asas"],
           "correctIndex": 0
         }
       ]
     },
     {
       "id": "LuisBarbosa",
-      "videoPath": "/assets/videos/LuisBarbosa.mp4",
-      "thumbnailPath": "/assets/thumbnails/LuisBarbosa.png",
       "quiz": [
         {
-          "text": "O que aprendeste com este vídeo?",
-          "options": ["A", "B", "C", "D"],
+          "text": "Que arvores aparecem? ",
+          "options": ["A - Macieiras", "B - Pinheiros", "C - Bananeiras", "D - Arbustos"],
+          "correctIndex": 1
+        },
+        {
+          "text": "De que cor era o cone do campo de visao do npc?",
+          "options": ["A - Vermelho", "B - Nada", "C - Verde", "D - Azul"],
           "correctIndex": 0
         },
         {
-          "text": "Qual o tema central?",
-          "options": ["Tema 1", "Tema 2", "Tema 3", "Tema 4"],
-          "correctIndex": 2
-        }
-      ]
-    },
-    {
-      "id": "Untitled-1",
-      "videoPath": "/assets/videos/Untitled-1.mp4",
-      "thumbnailPath": "/assets/thumbnails/Untitled-1.png",
-      "quiz": [
+          "text": "Em que momento o jogo se passa:",
+          "options": ["A - De dia", "B - À tarde", "C - De manhã", "D - À noite"],
+          "correctIndex": 3
+        },
         {
-          "text": "Pergunta sobre este vídeo?",
-          "options": ["Sim", "Não", "Talvez", "Não sei"],
+          "text": "Qual a cor da lanterna que aparece no inicio?",
+          "options": ["A - Verde", "B - Laranja", "C - Vermelho", "D - Roxo"],
+          "correctIndex": 2
+        },
+        {
+          "text": "Qual é que é o poder do player?",
+          "options": ["A - Avanço rápido", "B - Super salto", "C - Invisibilidade", "D - Voar"],
           "correctIndex": 0
         }
       ]
     },
     {
-      "id": "Untitled-2",
-      "videoPath": "/assets/videos/Untitled-2.mp4",
-      "thumbnailPath": "/assets/thumbnails/Untitled-2.png",
+      "id": "SamuelLeBlanc",
+      "videoPath": "/assets/videos/SamuelLeBlanc.mp4",
+      "thumbnailPath": "/assets/thumbnails/SamuelLeBlanc.png",
       "quiz": [
         {
-          "text": "Pergunta Untitled-2?",
-          "options": ["Opção 1", "Opção 2", "Opção 3", "Opção 4"],
+          "text": "Quantos saltos o player pode dar?",
+          "options": ["A - 4", "B - 1", "C - 3", "D - 2"],
+          "correctIndex": 2
+        },
+        {
+          "text": "Com quanta hp o player começou?",
+          "options": ["A - 10", "B - 30", "C - 24", "D - 20"],
+          "correctIndex": 3
+        },
+        {
+          "text": "O que esta no chão da fase",
+          "options": ["A - Agua", "B - Lava", "C - Acido", "D - Gosma verde"],
           "correctIndex": 1
+        },
+        {
+          "text": "Em que ambiente o player está?",
+          "options": ["A - Floresta", "B - Ilha tropical", "C - Cidade", "D - Caverna"],
+          "correctIndex": 3
+        }
+      ]
+    },
+    {
+      "id": "AntonioMariaPereira",
+      "videoPath": "/assets/videos/AntonioMariaPereira.mp4",
+      "thumbnailPath": "/assets/thumbnails/AntonioMariaPereira.png",
+      "quiz": [
+        {
+          "text": "Quantas moedas é preciso para desbloquear a segunda area? ",
+          "options": ["A - 7", "B - 8", "C - 9", "D - 10"],
+          "correctIndex": 3
+        },
+        {
+          "text": "Quantas moedas o personagem apanhou? ",
+          "options": ["A - 24", "B - 67", "C - 12", "D - 36"],
+          "correctIndex": 1
+        },
+        {
+          "text": "Quando o jogo começa qual roupa o esqueleto usa? ",
+          "options": ["A - Nada", "B - Roupa de médico", "C - Armadura", "D - Vestes gregas"],
+          "correctIndex": 2
         }
       ]
     },
     {
       "id": "Untitled-3",
-      "videoPath": "/assets/videos/Untitled-3.mp4",
-      "thumbnailPath": "/assets/thumbnails/Untitled-3.png",
       "quiz": [
         {
-          "text": "Pergunta Untitled-3?",
-          "options": ["A", "B", "C", "D"],
-          "correctIndex": 2
+          "text": "Quantas casas aparecem depois do checkpoint? ",
+          "options": ["A - 1", "B - 2.5", "C - 5", "D - 3"],
+          "correctIndex": 3
+        },
+        {
+          "text": "O que o player usa na cabeça?",
+          "options": ["A - Chapéu de cowboy", "B - Boné", "C - Nada", "D - Bandlet"],
+          "correctIndex": 0
+        },
+        {
+          "text": "Quantos baus aparecem na caverna?",
+          "options": ["A - 3", "B - 4", "C - 2", "D - 7"],
+          "correctIndex": 0
+        },
+        {
+          "text": "Como a personagem se parece?",
+          "options": ["A - Um médico", "B - Um cowboy", "C - Uma bailarina", "D - Um bombeiro"],
+          "correctIndex": 1
         }
+      ],
+      "moreQuestions": [
+        "qual é o nome de ambiente",
+        "qual é o ambiente do jogo",
+        "qual é p maior obstaculo",
+        "quem sai ilha",
+        "como é a batalha, o ataque"
       ]
     },
     {
       "id": "Untitled-4",
-      "videoPath": "/assets/videos/Untitled-4.mp4",
-      "thumbnailPath": "/assets/thumbnails/Untitled-4.png",
       "quiz": [
         {
-          "text": "Pergunta Untitled-4?",
-          "options": ["Verdadeiro", "Falso", "Ambos", "Nenhum"],
+          "text": "Com quanto hp o personagem começa?  ",
+          "options": ["A - 10", "B - 1", "C - 5", "D - 50"],
+          "correctIndex": 3
+        },
+        {
+          "text": "Qual o penteado do personagem",
+          "options": ["A - Rabo de cavalo", "B - Careca", "C - Moicano", "D - Cabelo solto"],
+          "correctIndex": 0
+        },
+        {
+          "text": "Qual o nome do Boss?",
+          "options": ["A - Lilli", "B - Dark", "C - David", "D - Feriyanda"],
+          "correctIndex": 0
+        },
+        {
+          "text": "Qual o primeiro obtáculo?",
+          "options": ["A - Serras", "B - Espinhos", "C - Pessoas", "D - Buracos"],
           "correctIndex": 0
         }
       ]
+    },
+    {
+      "id": "AntonioLourenco",
+      "videoPath": "/assets/videos/AntonioLourenco.mp4",
+      "thumbnailPath": "/assets/thumbnails/AntonioLourenco.png",
+      "quiz": []
+    },
+    {
+      "id": "ArturLeal",
+      "videoPath": "/assets/videos/ArturLeal.mp4",
+      "thumbnailPath": "/assets/thumbnails/ArturLeal.png",
+      "quiz": []
+    },
+    {
+      "id": "DiogoLopes",
+      "videoPath": "/assets/videos/DiogoLopes.mp4",
+      "thumbnailPath": "/assets/thumbnails/DiogoLopes.png",
+      "quiz": []
+    },
+    {
+      "id": "FilipePereira",
+      "videoPath": "/assets/videos/FilipePereira.mp4",
+      "thumbnailPath": "/assets/thumbnails/FilipePereira.png",
+      "quiz": []
+    },
+    {
+      "id": "JonasKozaka",
+      "videoPath": "/assets/videos/JonasKozaka.mp4",
+      "thumbnailPath": "/assets/thumbnails/JonasKozaka.png",
+      "quiz": []
+    },
+    {
+      "id": "LucasSeco",
+      "videoPath": "/assets/videos/LucasSeco.mp4",
+      "thumbnailPath": "/assets/thumbnails/LucasSeco.png",
+      "quiz": []
+    },
+    {
+      "id": "MariaDias",
+      "videoPath": "/assets/videos/MariaDias.mp4",
+      "thumbnailPath": "/assets/thumbnails/MariaDias.png",
+      "quiz": []
+    },
+    {
+      "id": "RafaelCarvalho",
+      "videoPath": "/assets/videos/RafaelCarvalho.mp4",
+      "thumbnailPath": "/assets/thumbnails/RafaelCarvalho.png",
+      "quiz": []
     }
   ]
 }

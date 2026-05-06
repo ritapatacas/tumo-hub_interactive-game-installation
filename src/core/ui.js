@@ -1,5 +1,5 @@
 import { resolveGalleryItems } from "./gallery.js";
-import { spotlightIndexForTick } from "./gallerySpotlight.js";
+import { spotlightIndexForTick, visibleIndexesForTick } from "./gallerySpotlight.js";
 import { createNoiseLevelWidget } from "./noiseLevel.js";
 import { getTeam } from "./team.js";
 
@@ -579,6 +579,8 @@ export class UI {
     marginLeft,
     marginRight,
     fontSize,
+    fontWeight,
+    letterSpacing,
     paragraphGap,
     color,
     leadingImage,
@@ -643,6 +645,12 @@ export class UI {
 
     if (fontSize !== undefined) {
       el.style.fontSize = typeof fontSize === "number" ? `${fontSize}px` : css(fontSize);
+    }
+    if (fontWeight !== undefined) {
+      el.style.fontWeight = String(fontWeight);
+    }
+    if (letterSpacing !== undefined) {
+      el.style.letterSpacing = css(letterSpacing);
     }
 
     if (align === "top") {
@@ -903,7 +911,7 @@ export class UI {
    * via `state.gallerySeed` + `state.galleryEpoch`, definidos ao entrar na galeria).
    * @param {{ columns?: number, items?: any[], variant?: "thumbnails" | "blind", state: object }} opts
    */
-  addSpotlightGallery({ columns = 3, items, variant = "thumbnails", state } = {}) {
+  addSpotlightGallery({ columns = 3, rows = 2, items, variant = "thumbnails", state } = {}) {
     if (!state) return;
 
     const resolved = resolveGalleryItems(items);
@@ -915,28 +923,23 @@ export class UI {
     const grid = document.createElement("div");
     grid.className = "gallery-grid gallery-grid--spotlight";
     grid.style.gridTemplateColumns = `repeat(${Math.max(1, columns)}, minmax(0, 1fr))`;
+    const visibleCount = Math.max(1, columns * Math.max(1, rows));
+    const slotCount = Math.min(resolved.length, visibleCount);
 
     const cards = [];
-    for (let i = 0; i < resolved.length; i++) {
-      const it = resolved[i];
+    for (let i = 0; i < slotCount; i += 1) {
       const card = document.createElement("div");
       const base =
         variant === "blind"
           ? "gallery-card gallery-card--passive gallery-card--blind gallery-card--spotlight-cell"
           : "gallery-card gallery-card--passive gallery-card--spotlight-cell";
       card.className = base;
-      card.dataset.index = String(i);
+      card.dataset.slot = String(i);
 
       if (variant === "thumbnails") {
         const img = document.createElement("img");
-        img.alt = it.name ?? "thumbnail";
-        if (it.thumbnail && typeof it.thumbnail === "string" && it.thumbnail.length > 0) {
-          img.src = it.thumbnail;
-        } else if (it.name) {
-          img.src = `/assets/thumbnails/${it.name}.png`;
-        } else {
-          img.src = "";
-        }
+        img.alt = "thumbnail";
+        img.src = "";
         img.className = "gallery-thumb";
         card.appendChild(img);
       }
@@ -954,24 +957,50 @@ export class UI {
       const seed = Number(state.gallerySeed) || 0;
       const len = resolved.length;
       if (!epoch || len === 0) {
-        cards.forEach((el) => el.classList.remove("gallery-card--spotlight"));
+        cards.forEach((el) => {
+          el.classList.remove("gallery-card--spotlight");
+          delete el.dataset.itemIndex;
+        });
         return;
       }
 
-      const tick = Math.floor((Date.now() - epoch) / 400);
-      if (tick === lastTick) return;
-      lastTick = tick;
+      const swapTick = Math.floor((Date.now() - epoch) / 1700);
+      const spotlightTick = Math.floor((Date.now() - epoch) / 900);
+      const combinedTick = swapTick * 10000 + spotlightTick;
+      if (combinedTick === lastTick) return;
+      lastTick = combinedTick;
 
-      const idx = spotlightIndexForTick(seed, tick, len);
-      state.gallerySpotlightIndex = idx;
+      const visibleIndexes = visibleIndexesForTick(seed, swapTick, len, visibleCount);
+      const spotlightItemIndex =
+        visibleIndexes[spotlightIndexForTick(seed, spotlightTick, visibleIndexes.length)] ?? 0;
+      state.gallerySpotlightIndex = spotlightItemIndex;
 
       cards.forEach((el, i) => {
-        el.classList.toggle("gallery-card--spotlight", i === idx);
+        const itemIndex = visibleIndexes[i];
+        const item = itemIndex == null ? null : resolved[itemIndex];
+        el.dataset.itemIndex = itemIndex == null ? "" : String(itemIndex);
+        el.classList.toggle("gallery-card--spotlight", itemIndex === spotlightItemIndex);
+
+        if (variant === "thumbnails") {
+          const img = el.querySelector(".gallery-thumb");
+          if (img) {
+            img.alt = item?.name ?? "thumbnail";
+            if (item?.thumbnail && typeof item.thumbnail === "string" && item.thumbnail.length > 0) {
+              img.src = item.thumbnail;
+            } else if (item?.name) {
+              img.src = `/assets/thumbnails/${item.name}.png`;
+            } else {
+              img.src = "";
+            }
+          }
+        }
+
+        el.style.visibility = item ? "visible" : "hidden";
       });
     };
 
     applyTick();
-    this._gallerySpotlightInterval = setInterval(applyTick, 120);
+    this._gallerySpotlightInterval = setInterval(applyTick, 250);
   }
 
   /**
@@ -1115,11 +1144,16 @@ export class UI {
         (String(team.name ?? "").trim() === "" &&
           (team.points === null || team.points === undefined));
       const row = document.createElement("div");
-      row.className = "leaderboard-row" + (empty ? " leaderboard-row--empty" : "");
+      const rankValue = Number.isFinite(Number(team?.rank)) ? Number(team.rank) : idx + 1;
+      row.className =
+        "leaderboard-row" +
+        (empty ? " leaderboard-row--empty" : "") +
+        (!empty && rankValue <= 3 ? " leaderboard-row--top3" : "") +
+        (team?.isCurrent ? " leaderboard-row--current" : "");
 
       const rank = document.createElement("div");
       rank.className = "leaderboard-rank";
-      rank.textContent = String(idx + 1).padStart(2, "0");
+      rank.textContent = String(rankValue).padStart(2, "0");
 
       const name = document.createElement("div");
       name.className = "leaderboard-name";

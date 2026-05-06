@@ -679,6 +679,14 @@ html, body {
 .ui-flex-row--quiet-body {
   flex-wrap: nowrap !important;
 }
+
+.ui-flex-row--attention-body {
+  flex-wrap: nowrap !important;
+  width: 88%;
+  max-width: 88%;
+  margin-left: auto;
+  margin-right: auto;
+}
 /* Só imagem sem slot (evita ocupar a fila inteira). Com slot — como attention — o tamanho vem do addImage. */
 .ui-flex-row--quiet-body
   > .ui-flex-section:has(> .ui-image-wrap:only-child)
@@ -874,6 +882,23 @@ html, body {
   flex: 1;
   min-height: 0;
   object-fit: cover;
+  transform: scale(1.9);
+  transform-origin: center center;
+}
+
+.gallery-grid--spotlight {
+  width: min(62vw, 1040px);
+  max-width: min(62vw, 1040px);
+  max-height: none;
+  overflow: hidden;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  row-gap: 28px;
+  column-gap: 44px;
+  align-content: center;
+}
+
+.gallery-grid--spotlight .gallery-card {
+  aspect-ratio: 1 / 0.76;
 }
 
 /* Quiz – theme.quiz.gap: afterTitle, afterQuestion, betweenOptions
@@ -1208,7 +1233,7 @@ html, body {
   border-radius: 3px;
 }
 
-/* Leaderboard: 2 colunas × 5 linhas (top 10), fluxo em coluna */
+/* Leaderboard: 2 colunas × 8 linhas (top 15 + equipa atual), fluxo em coluna */
 .leaderboard-card {
   display: inline-block;
   width: auto;
@@ -1225,10 +1250,10 @@ html, body {
 
 .leaderboard-list.leaderboard-list--two-columns {
   display: grid;
-  grid-template-rows: repeat(5, auto);
+  grid-template-rows: repeat(8, auto);
   grid-auto-flow: column;
   grid-auto-columns: minmax(0, 1fr);
-  gap: 10px 92px;
+  gap: 10px 60px;
   align-items: stretch;
 }
 
@@ -1237,23 +1262,32 @@ html, body {
   grid-template-columns: auto minmax(160px, 1fr) auto;
   align-items: center;
   gap: 12px 16px;
-  padding: 4px 28px;
+  padding: 4px 22px;
   border-radius: 4px;
   background: rgba(0 0 0 / 0.21);
   min-height: 3.15rem;
+  font-family: "Jersey 15", system-ui, sans-serif;
 }
 
 .leaderboard-row--empty {
   background: rgba(0 0 0 / 0.12);
 }
 
+.leaderboard-row--top3 {
+  background: rgba(0 0 0 / 0.5);
+}
+
 .leaderboard-row--empty .leaderboard-rank {
   opacity: 0.45;
 }
 
+.leaderboard-row--current {
+  color: #f2d34f;
+}
+
 .leaderboard-rank {
   font-size: clamp(1.45rem, 2.4vw, 2rem);
-  font-weight: 700;
+  font-weight: 100;
   opacity: 0.85;
   min-width: 2.75ch;
   font-variant-numeric: tabular-nums;
@@ -1263,11 +1297,15 @@ html, body {
   font-size: clamp(1.45rem, 2.35vw, 1.95rem);
   line-height: 1.1;
   text-transform: uppercase;
+  padding-left: 20px;
+  padding-right: 20px;
 }
 
 .leaderboard-points {
   font-size: clamp(1.45rem, 2.35vw, 1.95rem);
-  font-weight: 600;
+  font-weight: 100;
+  opacity: 0.78;
+  letter-spacing: 0.03em;
   text-align: right;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
@@ -1275,7 +1313,7 @@ html, body {
 
 @media (max-width: 640px) {
   .leaderboard-list.leaderboard-list--two-columns {
-    grid-template-rows: repeat(10, auto);
+    grid-template-rows: repeat(16, auto);
     grid-auto-flow: row;
     grid-template-columns: 1fr;
     gap: 8px;

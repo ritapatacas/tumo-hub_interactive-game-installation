@@ -4,14 +4,28 @@ import { bindAttentionInput } from "../../src/core/screenBindings.js";
 
 export let attentionScreen = new Screen("attention");
 
-attentionScreen.setLayout({ gap: 0, vAlign: "top", variant: "display" });
+attentionScreen.setLayout({
+  gap: 0,
+  vAlign: "top",
+  variant: "display",
+  marginTop: "25vh",
+  maxContentHeight: "min(56vh, 100%)",
+  maxWidth: "60vw",
+});
 attentionScreen.setBackgroundImage({
   filename: "bg-03.png",
   size: "cover",
   position: "center center",
 });
 
-attentionScreen.addText({ text: "Fica atento", variant: "title", vAlign: "top", marginTop: "10.65vh" });
+attentionScreen.addText({
+  text: "Fica atento",
+  variant: "title",
+  fontSize: "clamp(46px, 6.5vw, 78px)",
+  vAlign: "top",
+  marginTop: "clamp(5px, 2vh, 20px)",
+  marginBottom: "clamp(10px, 3.5vh, 30px)",
+});
 
 attentionScreen.addCornerHint({
   p2Only: true,
@@ -23,14 +37,16 @@ attentionScreen.beginFlexRow({
   gap: 0,
   hGap: 0,
   align: "stretch",
+  justify: "flex-start",
+  className: "ui-flex-row--attention-body",
 });
 
-attentionScreen.beginFlexSection({ align: "center", flex: 4 });
+attentionScreen.beginFlexSection({ align: "center", flex: 3, gap: 0, marginRight: 0 });
 attentionScreen.addMountStep(({ ui, payload, isP1 }) => {
   const p2DuringVideo = !isP1 && payload?.p2VideoListen;
   ui.addImage({
     filename: p2DuringVideo ? "hearing.png" : "attention.png",
-    size: 50,
+    size: 70,
     slotAspectRatio: "1 / 1",
     align: "center",
   });
@@ -39,24 +55,30 @@ attentionScreen.endFlexSection();
 
 attentionScreen.beginFlexSection({
   align: "left",
-  flex: 6,
-  justify: "center",
-  paddingRight: "5%",
+  flex: 5,
+  gap: 0,
+  justify: "flex-start",
+  minWidth: "0",
 });
 
 attentionScreen.addMountStep(({ ui, isP1 }) => {
-  const instructionsFontSize = "clamp(22px, 2.6vw, 36px)";
+  const instructionsFontSize = "clamp(26px, 3vw, 36px)";
   ui.addText(
     isP1
       ? {
           text: "o vídeo começará dentro de momentos, descreve-o em muito detalhe ao **Player 2**",
           variant: "body",
           fontSize: instructionsFontSize,
+          marginTop: 24,
+          marginRight: 60,
+
         }
       : {
-          text: "Ouve com muita atenção a descrição do **Player 1**.",
+          text: "Ouve com muita atenção a descrição do **Player 1**. \n\nPodes fazer perguntas, mas não podes ver o vídeo!",
           variant: "body",
           fontSize: instructionsFontSize,
+          marginTop: 24,
+          marginRight: 60,
         }
   );
 });
@@ -74,4 +96,13 @@ attentionScreen.onEnter(({ ui, state, payload, isP2 }) => {
     label: "Tempo",
     showZero: false,
   });
+  const countdown = ui._countdownEl;
+  if (countdown) {
+    countdown.style.marginTop = "auto";
+    countdown.style.marginBottom = "70px";
+    const labelEl = countdown.querySelector(".ui-quiz-countdown-label");
+    const valueEl = countdown.querySelector(".ui-quiz-countdown-value");
+    if (labelEl) labelEl.style.fontSize = "15px";
+    if (valueEl) valueEl.style.fontSize = "clamp(32px, 5.8vw, 46px)";
+  }
 });

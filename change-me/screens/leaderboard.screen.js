@@ -1,5 +1,5 @@
 import { Screen } from "../../src/core/Screen.js";
-import { getTeam, getTopLeaderboard } from "../../src/core/team.js";
+import { getLeaderboardWithCurrentTeam } from "../../src/core/team.js";
 import { buildCornerHintMarkup } from "../../src/core/ui.js";
 import { QUIZ_FEEDBACK_DOCK_MS } from "../../src/core/actions.js";
 import { bindLeaderboardInput } from "../../src/core/screenBindings.js";
@@ -14,12 +14,23 @@ leaderboardScreen.setBackgroundImage({
 
 leaderboardScreen.setLayout({
   align: { horizontal: "center", vertical: "top" },
-  gap: 38,
+  gap: 14,
   maxWidth: 1080,
 });
 
-leaderboardScreen.addText({ text: "Leaderboard", variant: "title", marginTop: 220, marginBottom: 40 });
-leaderboardScreen.addLeaderboardFromState((state) => getTopLeaderboard(state.teams, 10));
+leaderboardScreen.addText({
+  text: "LEADERBOARD",
+  variant: "title",
+  fontSize: "clamp(44px, 6.2vw, 80px)",
+  marginTop: 180,
+  marginBottom: 10,
+});
+leaderboardScreen.addMountStep(({ ui, state }) => {
+  ui.addLeaderboard({
+    teams: getLeaderboardWithCurrentTeam(state.teams, state.teamCode, 15),
+    slotCount: 16,
+  });
+});
 
 leaderboardScreen.addMountStep(({ ui, state, isP1 }) => {
   if (isP1) {
@@ -41,7 +52,7 @@ leaderboardScreen.addMountStep(({ ui, state, isP1 }) => {
     : buildCornerHintMarkup([{ color: "white", label: "PARA VOLTAR" }], {
         ariaLabel: "Prima o botão branco para voltar",
       });
-  ui.beginShadowBox({ dock: "bottom-left", radius: "4px" });
+  ui.beginShadowBox({ dock: "bottom-left", radius: "8px" });
   ui.setCornerHint({ html, ariaLabel, className: "ui-corner-hint-badge--wide", inline: true });
   ui.endShadowBox();
 });
@@ -49,8 +60,10 @@ leaderboardScreen.addMountStep(({ ui, state, isP1 }) => {
 leaderboardScreen.addBinding(bindLeaderboardInput);
 
 leaderboardScreen.onEnter(({ ui, state }) => {
-  const team = getTeam(state);
-  ui.addTeamScore(team.name, team.points, { teamCode: team.code });
+  if (ui._playerRoleBadgeEl) {
+    ui._playerRoleBadgeEl.remove();
+    ui._playerRoleBadgeEl = null;
+  }
   const dock = state.pendingQuizFeedbackDock;
   if (dock && typeof dock === "object") {
     state.pendingQuizFeedbackDock = null;

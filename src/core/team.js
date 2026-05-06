@@ -280,3 +280,32 @@ export function getTopLeaderboard(teams, limit) {
 
   return list;
 }
+
+export function getLeaderboardWithCurrentTeam(teams, currentTeamCode, topLimit = 15) {
+  const safeCode = normalizeCode(currentTeamCode);
+  const list = Object.values(sanitizeTeams(teams))
+    .map((record) => ({
+      name: record.name,
+      code: record.code,
+      points: Number.isFinite(Number(record.points)) ? Number(record.points) : 0,
+    }))
+    .sort((a, b) => b.points - a.points)
+    .map((record, index) => ({
+      ...record,
+      rank: index + 1,
+      isCurrent: safeCode !== "" && record.code === safeCode,
+    }));
+
+  const safeTopLimit = Math.max(1, Math.floor(Number(topLimit) || 15));
+  const top = list.slice(0, safeTopLimit);
+
+  if (!safeCode) return top;
+
+  const alreadyIncluded = top.some((team) => team.code === safeCode);
+  if (alreadyIncluded) return top;
+
+  const current = list.find((team) => team.code === safeCode);
+  if (!current) return top;
+
+  return [...top, current];
+}

@@ -22,6 +22,7 @@ blindGalleryScreen.addCornerHint({
 
 blindGalleryScreen.addSpotlightGallery({
   columns: 3,
+  rows: 2,
   variant: "blind",
 });
 

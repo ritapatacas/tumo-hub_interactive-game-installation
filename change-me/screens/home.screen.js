@@ -10,7 +10,13 @@ homeScreen.setBackgroundImage({
 });
 
 homeScreen.beginShadowBox({ marginTop: 14, marginBottom: 33 });
-homeScreen.addText({ text: "Comunicação sob Pressão", variant: "title" });
+homeScreen.addText({
+  text: "COMUNICAÇÃO SOB PRESSÃO",
+  variant: "title",
+  fontSize: "clamp(44px, 6.4vw, 82px)",
+  fontWeight: 500,
+  letterSpacing: "0.03em",
+});
 homeScreen.endShadowBox();
 
 homeScreen.addCornerHint({
@@ -28,7 +34,7 @@ homeScreen.addMountStep(({ ui, isP1 }) => {
       text: "A aguardar por Player 2",
       marginTop: 30,
       variant: "body",
-      fontSize: "clamp(22px, 2.5vw, 32px)",
+      fontSize: "clamp(26px, 3vw, 38px)",
     });
     return;
   }
@@ -36,7 +42,7 @@ homeScreen.addMountStep(({ ui, isP1 }) => {
     text: "Escolhe um nome para a tua equipa (ou escreve o teu código)",
     marginTop: 30,
     variant: "body",
-    fontSize: "clamp(22px, 2.5vw, 32px)",
+    fontSize: "clamp(26px, 3vw, 38px)",
   });
   ui.addInput({
     id: "teamName",

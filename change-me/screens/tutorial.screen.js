@@ -4,13 +4,13 @@ import { bindTutorialContinueKey } from "../../src/core/screenBindings.js";
 
 const tutStepText = {
   variant: "hand",
-  fontSize: "clamp(12px, 2.4vw, 26px)",
-  paragraphGap: 9,
+  fontSize: "clamp(18px, 3.1vw, 35px)",
+  paragraphGap: 14,
 };
 
 export let tutorialScreen = new Screen("tutorial");
 
-tutorialScreen.setLayout({ gap: 0, maxWidth: 490, vAlign: "top", marginTop: "25vh" });
+tutorialScreen.setLayout({ gap: 0, maxWidth: 590, vAlign: "top", marginTop: "25vh" });
 tutorialScreen.setBackgroundImage({
   filename: "bg-06.png",
   size: "cover",
@@ -35,23 +35,24 @@ tutorialScreen.beginFlexRow({
 tutorialScreen.addText({
   text: "Como jogar?",
   variant: "title",
+  fontSize: "clamp(36px, 5.5vw, 64px)",
   align: "top",
   color: "var(--ink)",
-  marginTop: -20,
+  marginTop: -28,
   marginBottom: 50,
 });
 
-tutorialScreen.beginFlexSection({ align: "left", gap: 14, marginTop: -20 });
+tutorialScreen.beginFlexSection({ align: "left", gap: 22, marginTop: -20 });
 
 const tutIcon = {
-  size: 18,
+  size: 20,
   slotAspectRatio: "1 / 1",
   objectFit: "contain",
 };
 
 const tutIconTopTight = {
   ...tutIcon,
-  marginTop: "calc(-0.42em - 6px)",
+  marginTop: "calc(-0.1em - 6px)",
 };
 
 tutorialScreen.addText({
@@ -62,6 +63,7 @@ tutorialScreen.addText({
 tutorialScreen.addText({
   text: "**Player 1** vê o vídeo e descreve tudo ao **Player 2**.",
   leadingImage: { filename: "talk.png", ...tutIcon },
+  marginTop: 16,
   ...tutStepText,
 });
 tutorialScreen.addText({
@@ -71,7 +73,9 @@ tutorialScreen.addText({
 });
 tutorialScreen.addText({
   text: "…sem fazer barulho.",
-  leadingImage: { filename: "quiet.png", ...tutIcon, size: 13 },
+  leadingImage: { filename: "quiet.png", ...tutIcon, size: 15, marginLeft: 18 },
+  marginLeft: 12,
+  marginTop: 16,
   ...tutStepText,
 });
 
