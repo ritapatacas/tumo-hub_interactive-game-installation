@@ -658,14 +658,14 @@ html, body {
   flex-wrap: nowrap !important; /* JS define wrap por omissão; aqui força imagem | texto | barra na mesma linha */
 }
 
-/* P1 quiet só com shell: não esticar a fila à altura da barra ativa (evita ~440px de altura à toa) */
+/* P2 quiet só com shell: não esticar a fila à altura da barra ativa (evita ~440px de altura à toa) */
 .ui-flex-row--quiet-body:has(.noise-level-wrap--shell):not(:has(.noise-level-wrap:not(.noise-level-wrap--shell))) {
   min-height: 0;
   align-items: flex-start;
 }
 
 .ui-flex-row--quiet-body:has(.noise-level-wrap--shell):not(:has(.noise-level-wrap:not(.noise-level-wrap--shell)))
-  .ui-flex-section--quiet-p1-slot
+  .ui-flex-section--quiet-p2-slot
   .noise-level-wrap--shell
   .noise-level-outer {
   height: min(200px, 34vh);
@@ -703,38 +703,38 @@ html, body {
   height: auto !important;
 }
 
-/* P1 quiet: a barra deixava de se mover porque .noise-level-wrap era width:100% + align-items:center,
+/* P2 quiet: a barra deixava de se mover porque .noise-level-wrap era width:100% + align-items:center,
    centrando os 24px no meio da coluna (larga pelo countdown). Alinhar à esquerda da coluna = mais perto do texto. */
-.ui-flex-row--quiet-body .ui-flex-section--quiet-p1-slot {
+.ui-flex-row--quiet-body .ui-flex-section--quiet-p2-slot {
   /* Mesmo deslocamento no contador e na .noise-level-outer para ficarem na mesma vertical */
-  --quiet-p1-meter-shift: -20px;
+  --quiet-p2-meter-shift: -20px;
 }
 
-.ui-flex-row--quiet-body .ui-flex-section--quiet-p1-slot .noise-level-wrap,
-.ui-flex-row--quiet-body .ui-flex-section--quiet-p1-slot .noise-level-wrap--shell {
+.ui-flex-row--quiet-body .ui-flex-section--quiet-p2-slot .noise-level-wrap,
+.ui-flex-row--quiet-body .ui-flex-section--quiet-p2-slot .noise-level-wrap--shell {
   align-items: flex-start;
   align-self: flex-start;
   width: auto;
   max-width: 100%;
-  margin-left: var(--quiet-p1-meter-shift);
+  margin-left: var(--quiet-p2-meter-shift);
 }
 
-.ui-flex-row--quiet-body .ui-flex-section--quiet-p1-slot .noise-level-outer {
+.ui-flex-row--quiet-body .ui-flex-section--quiet-p2-slot .noise-level-outer {
   margin-top: 24px;
   margin-left: 0;
   margin-bottom: 40px;
 }
 
-.ui-flex-row--quiet-body .ui-flex-section--quiet-p1-slot .ui-quiz-countdown {
+.ui-flex-row--quiet-body .ui-flex-section--quiet-p2-slot .ui-quiz-countdown {
   align-items: flex-start;
   align-self: flex-start;
   width: auto;
-  margin-left: var(--quiet-p1-meter-shift);
+  margin-left: var(--quiet-p2-meter-shift);
   box-sizing: border-box;
 }
 
 /* Coluna da mesma largura que a barra (24px): rótulo + número alinhados à barra */
-.ui-flex-row--quiet-body .ui-flex-section--quiet-p1-slot .ui-quiz-countdown-label {
+.ui-flex-row--quiet-body .ui-flex-section--quiet-p2-slot .ui-quiz-countdown-label {
   width: 24px;
   text-align: center;
   font-size: 10px;
@@ -742,7 +742,7 @@ html, body {
   box-sizing: border-box;
 }
 
-.ui-flex-row--quiet-body .ui-flex-section--quiet-p1-slot .ui-quiz-countdown-value {
+.ui-flex-row--quiet-body .ui-flex-section--quiet-p2-slot .ui-quiz-countdown-value {
   width: 24px;
   text-align: center;
   box-sizing: border-box;
@@ -1324,13 +1324,13 @@ html, body {
   }
 }
 
-body[data-role="p1"] .btn,
-body[data-role="p1"] .input,
-body[data-role="p1"] .gallery-card,
-body[data-role="p1"] .quiz-option {
+body[data-role="p2"] .btn,
+body[data-role="p2"] .input,
+body[data-role="p2"] .gallery-card,
+body[data-role="p2"] .quiz-option {
   pointer-events: none;
 }
 
-body[data-role="p1"] .input {
+body[data-role="p2"] .input {
   opacity: 0.85;
 }

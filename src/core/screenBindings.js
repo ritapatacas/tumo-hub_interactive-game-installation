@@ -54,8 +54,8 @@ export function bindAttentionInput(ctx) {
     const pre = new Image();
     pre.src = "/assets/images/hearing.png";
   }
-  const p2Video = ctx.isP2 && ctx.payload?.p2VideoListen;
-  if (p2Video) {
+  const p1Video = ctx.isP1 && ctx.payload?.p1VideoListen;
+  if (p1Video) {
     let done = false;
     const go = () => {
       if (done) return;
@@ -94,12 +94,12 @@ export function bindLeaderboardInput(ctx) {
     const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
     const hasTeam = String(ctx.state.teamName ?? "").trim().length > 0;
 
-    if (ctx.isP2 && k === "b") {
+    if (ctx.isP1 && k === "b") {
       e.preventDefault();
       ctx.ui.runAction(hasTeam ? "goGallery" : "goHome");
       return;
     }
-    if (ctx.isP2 && k === "v" && hasTeam) {
+    if (ctx.isP1 && k === "v" && hasTeam) {
       e.preventDefault();
       ctx.ui.runAction("endGameAndGoHome");
       return;

@@ -30,7 +30,7 @@ export class ScreenManager {
           console.warn("Could not save teams to storage", e);
         }
       };
-      const role = document.body.dataset.role === "p1" ? "p1" : "p2";
+      const role = document.body.dataset.role === "p2" ? "p2" : "p1";
       fn({
         goTo: (name, p) => this.goTo(name, p, { source: "action" }),
         ui: this.ui,
@@ -40,7 +40,7 @@ export class ScreenManager {
         persistTeams,
         screen: this._current?.name ?? null,
         isP1: role === "p1",
-        isP2: role !== "p1",
+        isP2: role === "p2",
       });
     });
   }
@@ -50,7 +50,7 @@ export class ScreenManager {
   }
 
   _screenCtx(payload) {
-    const role = document.body.dataset.role === "p1" ? "p1" : "p2";
+    const role = document.body.dataset.role === "p2" ? "p2" : "p1";
     return {
       goTo: (n, p) => this.goTo(n, p),
       ui: this.ui,
@@ -58,7 +58,7 @@ export class ScreenManager {
       payload,
       actions: this.actions,
       isP1: role === "p1",
-      isP2: role !== "p1",
+      isP2: role === "p2",
     };
   }
 
@@ -87,12 +87,12 @@ export class ScreenManager {
 
   draw(p) {
     if (!this._current) return;
-    const role = document.body.dataset.role === "p1" ? "p1" : "p2";
+    const role = document.body.dataset.role === "p2" ? "p2" : "p1";
     const ctx = {
       ui: this.ui,
       state: this.state,
       isP1: role === "p1",
-      isP2: role !== "p1",
+      isP2: role === "p2",
     };
     this._current.draw(p, ctx);
   }

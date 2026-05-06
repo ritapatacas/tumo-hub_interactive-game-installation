@@ -17,6 +17,6 @@ quizScreen.useDefaultQuiz({
   onLevelChange: ({ localLevel }, state) => {
     state.publishRoleNoiseLevel?.(localLevel);
   },
-  getSecondaryLevel: (state) => state.noiseLevelP1 ?? 0,
+  getSecondaryLevel: (state) => state.noiseLevelP2 ?? 0,
   optionsLayout: "list",
 });

@@ -37,7 +37,7 @@ quietScreen.addText({
 });
 
 quietScreen.addCornerHint({
-  p2Only: true,
+  p1Only: true,
   buttons: [{ color: "white", label: "CONTINUAR" }],
   ariaLabel: "Prima o botão branco para continuar",
 });
@@ -67,17 +67,17 @@ quietScreen.beginFlexSection({
   minWidth: "0",
 });
 
-quietScreen.addMountStep(({ ui, payload, isP1, state }) => {
+quietScreen.addMountStep(({ ui, payload, isP2, state }) => {
   const bodyFontSize = "clamp(26px, 3vw, 36px)";
-  if (isP1 && payload?.p1WhileP2Quiz) {
+  if (isP2 && payload?.p2WhileP1Quiz) {
     ui.addText({
-      text: "O Player 2 está a responder ao quiz.",
+      text: "O Player 1 está a responder ao quiz.",
       variant: "body",
       fontSize: bodyFontSize,
       marginTop: 24,
       marginRight: 60,
     });
-  } else if (isP1) {
+  } else if (isP2) {
     ui.addText({
       text: "Já não vão poder falar!\nSe forem apanhados serão descontados pontos!",
       variant: "body",
@@ -97,17 +97,17 @@ quietScreen.addMountStep(({ ui, payload, isP1, state }) => {
 });
 quietScreen.endFlexSection();
 
-quietScreen.addMountStep(({ ui, payload, isP1 }) => {
-  if (!isP1) return;
+quietScreen.addMountStep(({ ui, payload, isP2 }) => {
+  if (!isP2) return;
   ui.beginFlexSection({
     align: "left",
     flex: false,
-    className: "ui-flex-section--quiet-p1-slot",
+    className: "ui-flex-section--quiet-p2-slot",
     minWidth: 72,
     marginLeft: -60,
     marginTop: -32,
   });
-  const quiz = Boolean(payload?.p1WhileP2Quiz);
+  const quiz = Boolean(payload?.p2WhileP1Quiz);
   if (quiz) {
     ui.addCountdownTimer({
       seconds: 10,
@@ -132,13 +132,13 @@ quietScreen.addMountStep(({ ui, payload, isP1 }) => {
 quietScreen.endFlexRow();
 
 quietScreen.onKeyDown("Enter", "advanceFromQuiet", {
-  when: (c) => !(c.isP1 && c.payload?.p1WhileP2Quiz),
+  when: (c) => !(c.isP2 && c.payload?.p2WhileP1Quiz),
 });
 
-quietScreen.onEnter(({ ui, state, payload, isP1 }) => {
+quietScreen.onEnter(({ ui, state, payload, isP2 }) => {
   const team = getTeam(state);
   ui.addTeamScore(team.name, team.points, { teamCode: team.code });
-  if (isP1 && payload?.p1WhileP2Quiz) return;
+  if (isP2 && payload?.p2WhileP1Quiz) return;
   ui.addCountdownTimer({
     seconds: 10,
     label: "Tempo",

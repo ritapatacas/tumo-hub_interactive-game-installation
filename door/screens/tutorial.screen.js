@@ -44,17 +44,17 @@ const tutIconTopTight = {
 };
 
 doorTutorialScreen.addText({
-  text: "**Player 1** vai para o outro lado da sala e escolhe o vídeo da ronda.",
+  text: "**Player 2** vai para o outro lado da sala e escolhe o vídeo da ronda.",
   leadingImage: { filename: "walk.png", ...tutIconTopTight },
   ...tutStepText,
 });
 doorTutorialScreen.addText({
-  text: "**Player 1** vê o vídeo e descreve tudo ao **Player 2**.",
+  text: "**Player 2** vê o vídeo e descreve tudo ao **Player 1**.",
   leadingImage: { filename: "talk.png", ...tutIcon },
   ...tutStepText,
 });
 doorTutorialScreen.addText({
-  text: "**Player 2** responde à pergunta com base no que o **Player 1** disse.",
+  text: "**Player 1** responde à pergunta com base no que o **Player 2** disse.",
   leadingImage: { filename: "hearing.png", ...tutIcon },
   ...tutStepText,
 });

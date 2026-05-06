@@ -20,7 +20,7 @@ homeScreen.addText({
 homeScreen.endShadowBox();
 
 homeScreen.addCornerHint({
-  p2Only: true,
+  p1Only: true,
   buttons: [
     { color: "white", label: "CONTINUAR" },
     { color: "blue", label: "LEADERBOARD" },
@@ -28,10 +28,10 @@ homeScreen.addCornerHint({
   ariaLabel: "Prima o botão branco ou a tecla B para continuar; botão azul ou tecla L para o leaderboard",
 });
 
-homeScreen.addMountStep(({ ui, isP1 }) => {
-  if (isP1) {
+homeScreen.addMountStep(({ ui, isP2 }) => {
+  if (isP2) {
     ui.addText({
-      text: "A aguardar por Player 2",
+      text: "A aguardar por Player 1",
       marginTop: 30,
       variant: "body",
       fontSize: "clamp(26px, 3vw, 38px)",
@@ -53,7 +53,7 @@ homeScreen.addMountStep(({ ui, isP1 }) => {
   });
 });
 
-homeScreen.onKeyDown("l", "goLeaderboard", { p2Only: true });
-homeScreen.onKeyDown("b", "saveTeamName", { p2Only: true });
-homeScreen.onSerialButton(4, "saveTeamName", { p2Only: true });
-homeScreen.onSerialButton(1, "goLeaderboard", { p2Only: true });
+homeScreen.onKeyDown("l", "goLeaderboard", { p1Only: true });
+homeScreen.onKeyDown("b", "saveTeamName", { p1Only: true });
+homeScreen.onSerialButton(4, "saveTeamName", { p1Only: true });
+homeScreen.onSerialButton(1, "goLeaderboard", { p1Only: true });

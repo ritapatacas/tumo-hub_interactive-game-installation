@@ -244,7 +244,7 @@ function broadcastState(sessionId) {
 
 wss.on("connection", (ws) => {
   ws._sessionId = null;
-  ws._role = "p2";
+  ws._role = "p1";
 
   ws.on("message", (raw) => {
     let msg = null;
@@ -257,7 +257,7 @@ wss.on("connection", (ws) => {
 
     if (msg.type === "join") {
       const sessionId = String(msg.sessionId || "default");
-      const role = msg.role === "p1" ? "p1" : "p2";
+      const role = msg.role === "p2" ? "p2" : "p1";
       ws._sessionId = sessionId;
       ws._role = role;
       const session = ensureSession(sessionId);
@@ -267,7 +267,7 @@ wss.on("connection", (ws) => {
     }
 
     if (msg.type === "set_screen") {
-      if (ws._role !== "p2") return;
+      if (ws._role !== "p1") return;
       const sessionId = ws._sessionId || String(msg.sessionId || "default");
       const session = ensureSession(sessionId);
       session.screen = String(msg.screen || "home");

@@ -11,8 +11,8 @@ import { sanitizeTeams } from "./core/team.js";
 const TEAMS_STORAGE_KEY = "tumo_hub_teams";
 const SHARED_SCREENS = new Set(["home", "tutorial", "attention", "quiet", "leaderboard"]);
 const ROLE_ONLY = {
-  video: "p1",
-  quiz: "p2",
+  video: "p2",
+  quiz: "p1",
 };
 const NOISE_SYNC_MIN_INTERVAL_MS = 120;
 const NOISE_SYNC_MIN_DELTA = 0.03;
@@ -27,19 +27,19 @@ function resolveVisibleScreen(globalScreen, role) {
     return { name: globalScreen, payload: null };
   }
   if (globalScreen === "gallery") {
-    return { name: role === "p1" ? "gallery" : "blind-gallery", payload: null };
+    return { name: role === "p2" ? "gallery" : "blind-gallery", payload: null };
   }
   const allowedRole = ROLE_ONLY[globalScreen];
   if (!allowedRole || allowedRole === role) {
     return { name: globalScreen, payload: null };
   }
-  if (globalScreen === "video" && role === "p2") {
-    return { name: "attention", payload: { p2VideoListen: true } };
+  if (globalScreen === "video" && role === "p1") {
+    return { name: "attention", payload: { p1VideoListen: true } };
   }
-  if (globalScreen === "quiz" && role === "p1") {
+  if (globalScreen === "quiz" && role === "p2") {
     return {
       name: "quiet",
-      payload: { p1WhileP2Quiz: true },
+      payload: { p2WhileP1Quiz: true },
     };
   }
   return { name: "waiting", payload: { message: "A sessão está a avançar no outro ecrã." } };
@@ -149,8 +149,8 @@ async function saveTeamsToServer(apiBaseUrl, teams) {
 export async function createApp(mountEl, sessionConfig) {
   const interfaceConfig = resolveInterfaceConfig(sessionConfig?.interfaceName);
   const { theme, actions, screens } = interfaceConfig;
-  const role = sessionConfig?.role === "p1" ? "p1" : "p2";
-  const isController = role === "p2";
+  const role = sessionConfig?.role === "p2" ? "p2" : "p1";
+  const isController = role === "p1";
   const apiBaseUrl = createApiBaseUrl(sessionConfig);
   let teams = loadTeamsFromStorage();
 

@@ -11,8 +11,8 @@ function parseRoleFromUrl(params) {
   if (p === "1") return "p1";
   if (p === "2") return "p2";
   const legacy = String(params.get("role") || "").toLowerCase();
-  if (legacy === "p1") return "p1";
-  return "p2";
+  if (legacy === "p2") return "p2";
+  return "p1";
 }
 
 export function getSessionConfigFromUrl() {

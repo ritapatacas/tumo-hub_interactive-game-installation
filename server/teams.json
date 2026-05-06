@@ -589,5 +589,43 @@
         ]
       }
     }
+  },
+  "#M49X": {
+    "code": "#M49X",
+    "name": "boa",
+    "points": 0,
+    "viewedVideoIds": [],
+    "answeredQuestionIds": [],
+    "quizHistory": {}
+  },
+  "#9PHX": {
+    "code": "#9PHX",
+    "name": "boa",
+    "points": 0,
+    "viewedVideoIds": [
+      "DiogoLopes",
+      "MariaDias",
+      "ArturLeal"
+    ],
+    "answeredQuestionIds": [],
+    "quizHistory": {}
+  },
+  "#7K4B": {
+    "code": "#7K4B",
+    "name": "mais 1",
+    "points": 0,
+    "viewedVideoIds": [
+      "DiogoLopes"
+    ],
+    "answeredQuestionIds": [
+      "DiogoLopes::Pergunta provisória: revê este vídeo e substitui esta pergunta depois."
+    ],
+    "quizHistory": {
+      "DiogoLopes": {
+        "DiogoLopes::Pergunta provisória: revê este vídeo e substitui esta pergunta depois.": [
+          false
+        ]
+      }
+    }
   }
 }

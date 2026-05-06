@@ -18,13 +18,13 @@ tutorialScreen.setBackgroundImage({
 });
 
 tutorialScreen.addCornerHint({
-  p2Only: true,
+  p1Only: true,
   buttons: [{ color: "white", label: "PARA CONTINUAR" }],
   ariaLabel: "Prima o botão branco ou a tecla Enter para ir à galeria",
 });
 
-tutorialScreen.addMountStep(({ ui, isP1 }) => {
-  if (isP1) ui.setCornerHint({ text: "" });
+tutorialScreen.addMountStep(({ ui, isP2 }) => {
+  if (isP2) ui.setCornerHint({ text: "" });
 });
 
 tutorialScreen.beginFlexRow({
@@ -56,18 +56,18 @@ const tutIconTopTight = {
 };
 
 tutorialScreen.addText({
-  text: "**Player 1** vai para o outro lado da sala e escolhe o vídeo da ronda.",
+  text: "**Player 2** vai para o outro lado da sala e escolhe o vídeo da ronda.",
   leadingImage: { filename: "walk.png", ...tutIconTopTight },
   ...tutStepText,
 });
 tutorialScreen.addText({
-  text: "**Player 1** vê o vídeo e descreve tudo ao **Player 2**.",
+  text: "**Player 2** vê o vídeo e descreve tudo ao **Player 1**.",
   leadingImage: { filename: "talk.png", ...tutIcon },
   marginTop: 16,
   ...tutStepText,
 });
 tutorialScreen.addText({
-  text: "**Player 2** responde à pergunta com base no que o **Player 1** disse.",
+  text: "**Player 1** responde à pergunta com base no que o **Player 2** disse.",
   leadingImage: { filename: "hearing.png", ...tutIcon },
   ...tutStepText,
 });
@@ -82,7 +82,7 @@ tutorialScreen.addText({
 tutorialScreen.endFlexSection();
 tutorialScreen.endFlexRow();
 
-tutorialScreen.addBinding((ctx) => (ctx.isP2 ? bindTutorialContinueKey(ctx) : () => {}));
+tutorialScreen.addBinding((ctx) => (ctx.isP1 ? bindTutorialContinueKey(ctx) : () => {}));
 
 tutorialScreen.onEnter(({ ui, state }) => {
   const team = getTeam(state);

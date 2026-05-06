@@ -32,8 +32,8 @@ leaderboardScreen.addMountStep(({ ui, state }) => {
   });
 });
 
-leaderboardScreen.addMountStep(({ ui, state, isP1 }) => {
-  if (isP1) {
+leaderboardScreen.addMountStep(({ ui, state, isP2 }) => {
+  if (isP2) {
     ui.setCornerHint({ text: "" });
     return;
   }

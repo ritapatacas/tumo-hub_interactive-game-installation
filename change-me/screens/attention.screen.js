@@ -28,7 +28,7 @@ attentionScreen.addText({
 });
 
 attentionScreen.addCornerHint({
-  p2Only: true,
+  p1Only: true,
   buttons: [{ color: "white", label: "CONTINUAR" }],
   ariaLabel: "Prima o botão branco para continuar",
 });
@@ -42,10 +42,10 @@ attentionScreen.beginFlexRow({
 });
 
 attentionScreen.beginFlexSection({ align: "center", flex: 3, gap: 0, marginRight: 0 });
-attentionScreen.addMountStep(({ ui, payload, isP1 }) => {
-  const p2DuringVideo = !isP1 && payload?.p2VideoListen;
+attentionScreen.addMountStep(({ ui, payload, isP2 }) => {
+  const p1DuringVideo = !isP2 && payload?.p1VideoListen;
   ui.addImage({
-    filename: p2DuringVideo ? "hearing.png" : "attention.png",
+    filename: p1DuringVideo ? "hearing.png" : "attention.png",
     size: 70,
     slotAspectRatio: "1 / 1",
     align: "center",
@@ -61,12 +61,12 @@ attentionScreen.beginFlexSection({
   minWidth: "0",
 });
 
-attentionScreen.addMountStep(({ ui, isP1 }) => {
+attentionScreen.addMountStep(({ ui, isP2 }) => {
   const instructionsFontSize = "clamp(26px, 3vw, 36px)";
   ui.addText(
-    isP1
+    isP2
       ? {
-          text: "o vídeo começará dentro de momentos, descreve-o em muito detalhe ao **Player 2**",
+          text: "o vídeo começará dentro de momentos, descreve-o em muito detalhe ao **Player 1**",
           variant: "body",
           fontSize: instructionsFontSize,
           marginTop: 24,
@@ -74,7 +74,7 @@ attentionScreen.addMountStep(({ ui, isP1 }) => {
 
         }
       : {
-          text: "Ouve com muita atenção a descrição do **Player 1**. \n\nPodes fazer perguntas, mas não podes ver o vídeo!",
+          text: "Ouve com muita atenção a descrição do **Player 2**. \n\nPodes fazer perguntas, mas não podes ver o vídeo!",
           variant: "body",
           fontSize: instructionsFontSize,
           marginTop: 24,
@@ -87,10 +87,10 @@ attentionScreen.endFlexRow();
 
 attentionScreen.addBinding(bindAttentionInput);
 
-attentionScreen.onEnter(({ ui, state, payload, isP2 }) => {
+attentionScreen.onEnter(({ ui, state, payload, isP1 }) => {
   const team = getTeam(state);
   ui.addTeamScore(team.name, team.points, { teamCode: team.code });
-  if (isP2 && payload?.p2VideoListen) return;
+  if (isP1 && payload?.p1VideoListen) return;
   ui.addCountdownTimer({
     seconds: 5,
     label: "Tempo",

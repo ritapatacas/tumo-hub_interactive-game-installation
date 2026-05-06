@@ -162,49 +162,97 @@
       "id": "AntonioLourenco",
       "videoPath": "/assets/videos/AntonioLourenco.mp4",
       "thumbnailPath": "/assets/thumbnails/AntonioLourenco.png",
-      "quiz": []
+      "quiz": [
+        {
+          "text": "Pergunta provisória: revê este vídeo e substitui esta pergunta depois.",
+          "options": ["A - Opção 1", "B - Opção 2", "C - Opção 3", "D - Opção 4"],
+          "correctIndex": 0
+        }
+      ]
     },
     {
       "id": "ArturLeal",
       "videoPath": "/assets/videos/ArturLeal.mp4",
       "thumbnailPath": "/assets/thumbnails/ArturLeal.png",
-      "quiz": []
+      "quiz": [
+        {
+          "text": "Pergunta provisória: revê este vídeo e substitui esta pergunta depois.",
+          "options": ["A - Opção 1", "B - Opção 2", "C - Opção 3", "D - Opção 4"],
+          "correctIndex": 0
+        }
+      ]
     },
     {
       "id": "DiogoLopes",
       "videoPath": "/assets/videos/DiogoLopes.mp4",
       "thumbnailPath": "/assets/thumbnails/DiogoLopes.png",
-      "quiz": []
+      "quiz": [
+        {
+          "text": "Pergunta provisória: revê este vídeo e substitui esta pergunta depois.",
+          "options": ["A - Opção 1", "B - Opção 2", "C - Opção 3", "D - Opção 4"],
+          "correctIndex": 0
+        }
+      ]
     },
     {
       "id": "FilipePereira",
       "videoPath": "/assets/videos/FilipePereira.mp4",
       "thumbnailPath": "/assets/thumbnails/FilipePereira.png",
-      "quiz": []
+      "quiz": [
+        {
+          "text": "Pergunta provisória: revê este vídeo e substitui esta pergunta depois.",
+          "options": ["A - Opção 1", "B - Opção 2", "C - Opção 3", "D - Opção 4"],
+          "correctIndex": 0
+        }
+      ]
     },
     {
       "id": "JonasKozaka",
       "videoPath": "/assets/videos/JonasKozaka.mp4",
       "thumbnailPath": "/assets/thumbnails/JonasKozaka.png",
-      "quiz": []
+      "quiz": [
+        {
+          "text": "Pergunta provisória: revê este vídeo e substitui esta pergunta depois.",
+          "options": ["A - Opção 1", "B - Opção 2", "C - Opção 3", "D - Opção 4"],
+          "correctIndex": 0
+        }
+      ]
     },
     {
       "id": "LucasSeco",
       "videoPath": "/assets/videos/LucasSeco.mp4",
       "thumbnailPath": "/assets/thumbnails/LucasSeco.png",
-      "quiz": []
+      "quiz": [
+        {
+          "text": "Pergunta provisória: revê este vídeo e substitui esta pergunta depois.",
+          "options": ["A - Opção 1", "B - Opção 2", "C - Opção 3", "D - Opção 4"],
+          "correctIndex": 0
+        }
+      ]
     },
     {
       "id": "MariaDias",
       "videoPath": "/assets/videos/MariaDias.mp4",
       "thumbnailPath": "/assets/thumbnails/MariaDias.png",
-      "quiz": []
+      "quiz": [
+        {
+          "text": "Pergunta provisória: revê este vídeo e substitui esta pergunta depois.",
+          "options": ["A - Opção 1", "B - Opção 2", "C - Opção 3", "D - Opção 4"],
+          "correctIndex": 0
+        }
+      ]
     },
     {
       "id": "RafaelCarvalho",
       "videoPath": "/assets/videos/RafaelCarvalho.mp4",
       "thumbnailPath": "/assets/thumbnails/RafaelCarvalho.png",
-      "quiz": []
+      "quiz": [
+        {
+          "text": "Pergunta provisória: revê este vídeo e substitui esta pergunta depois.",
+          "options": ["A - Opção 1", "B - Opção 2", "C - Opção 3", "D - Opção 4"],
+          "correctIndex": 0
+        }
+      ]
     }
   ]
 }

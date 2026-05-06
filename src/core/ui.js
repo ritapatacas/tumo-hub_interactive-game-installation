@@ -285,7 +285,7 @@ export class UI {
     this._contentEl = content;
 
     if (document.body.dataset.interface !== "door") {
-      const role = document.body.dataset.role === "p1" ? "p1" : "p2";
+      const role = document.body.dataset.role === "p2" ? "p2" : "p1";
       const badge = document.createElement("div");
       badge.className = "ui-player-role-badge";
       badge.textContent = role === "p1" ? "PLAYER 1" : "PLAYER 2";
