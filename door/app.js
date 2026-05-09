@@ -1,7 +1,7 @@
 import { theme } from "../change-me/theme.js";
 import { doorHomeScreen } from "./screens/home.screen.js";
 import { doorLeaderboardScreen } from "./screens/leaderboard.screen.js";
-import { doorMakingofScreen } from "./screens/makingof.screen.js";
+import { clearDoorMakingofSlideshow, doorMakingofScreen } from "./screens/makingof.screen.js";
 import { doorTutorialScreen } from "./screens/tutorial.screen.js";
 
 export { theme };
@@ -23,27 +23,30 @@ function getNextDoorScreen(currentName) {
   return DOOR_SCREEN_ORDER[(currentIndex + 1) % DOOR_SCREEN_ORDER.length];
 }
 
-function scheduleDoorAdvance(ctx, currentName) {
+const DEFAULT_DOOR_SCREEN_MS = 15000;
+
+function scheduleDoorAdvance(ctx, currentName, durationMs = DEFAULT_DOOR_SCREEN_MS) {
   clearDoorTimer(ctx.state);
   ctx.state.__doorAutoAdvanceTimerId = setTimeout(() => {
     ctx.state.__doorAutoAdvanceTimerId = null;
     ctx.goTo(getNextDoorScreen(currentName));
-  }, 15000);
+  }, durationMs);
 }
 
-function mountDoorAdvance(screen, currentName) {
+function mountDoorAdvance(screen, currentName, { onExit } = {}) {
   screen.onEnter((ctx) => {
-    scheduleDoorAdvance(ctx, currentName);
+    scheduleDoorAdvance(ctx, currentName, screen.autoAdvanceMs);
   });
   screen.onExit(({ state }) => {
     clearDoorTimer(state);
+    if (onExit) onExit(state);
   });
   screen.onKeyDown("Enter", "goDoorNext", { preventDefault: true });
 }
 
 mountDoorAdvance(doorHomeScreen, "home");
 mountDoorAdvance(doorTutorialScreen, "door-tutorial");
-mountDoorAdvance(doorMakingofScreen, "door-makingof");
+mountDoorAdvance(doorMakingofScreen, "door-makingof", { onExit: clearDoorMakingofSlideshow });
 mountDoorAdvance(doorLeaderboardScreen, "leaderboard");
 
 export const actions = {

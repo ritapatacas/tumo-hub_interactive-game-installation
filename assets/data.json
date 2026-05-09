@@ -134,31 +134,6 @@
       ]
     },
     {
-      "id": "Untitled-4",
-      "quiz": [
-        {
-          "text": "Com quanto hp o personagem começa?  ",
-          "options": ["A - 10", "B - 1", "C - 5", "D - 50"],
-          "correctIndex": 3
-        },
-        {
-          "text": "Qual o penteado do personagem",
-          "options": ["A - Rabo de cavalo", "B - Careca", "C - Moicano", "D - Cabelo solto"],
-          "correctIndex": 0
-        },
-        {
-          "text": "Qual o nome do Boss?",
-          "options": ["A - Lilli", "B - Dark", "C - David", "D - Feriyanda"],
-          "correctIndex": 0
-        },
-        {
-          "text": "Qual o primeiro obtáculo?",
-          "options": ["A - Serras", "B - Espinhos", "C - Pessoas", "D - Buracos"],
-          "correctIndex": 0
-        }
-      ]
-    },
-    {
       "id": "AntonioLourenco",
       "videoPath": "/assets/videos/AntonioLourenco.mp4",
       "thumbnailPath": "/assets/thumbnails/AntonioLourenco.png",

@@ -16,7 +16,7 @@ const ROLE_ONLY = {
 };
 const NOISE_SYNC_MIN_INTERVAL_MS = 120;
 const NOISE_SYNC_MIN_DELTA = 0.03;
-const INITIAL_SCREEN = "tutorial";
+const INITIAL_SCREEN = "home";
 
 function clamp01(n) {
   return Math.max(0, Math.min(1, Number(n) || 0));

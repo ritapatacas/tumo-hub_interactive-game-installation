@@ -853,5 +853,82 @@
         ]
       }
     }
+  },
+  "#9AAD": {
+    "code": "#9AAD",
+    "name": "Equipa",
+    "points": 0,
+    "viewedVideoIds": [
+      "ArturLeal"
+    ],
+    "answeredQuestionIds": [
+      "ArturLeal::Pergunta provisória: revê este vídeo e substitui esta pergunta depois."
+    ],
+    "quizHistory": {
+      "ArturLeal": {
+        "ArturLeal::Pergunta provisória: revê este vídeo e substitui esta pergunta depois.": [
+          true
+        ]
+      }
+    }
+  },
+  "#WN4N": {
+    "code": "#WN4N",
+    "name": "Equipa",
+    "points": 0,
+    "viewedVideoIds": [
+      "JonasKozaka"
+    ],
+    "answeredQuestionIds": [],
+    "quizHistory": {}
+  },
+  "#TTUF": {
+    "code": "#TTUF",
+    "name": "Equipa",
+    "points": 0,
+    "viewedVideoIds": [
+      "SamuelLeBlanc",
+      "FilipePereira"
+    ],
+    "answeredQuestionIds": [
+      "FilipePereira::Pergunta provisória: revê este vídeo e substitui esta pergunta depois."
+    ],
+    "quizHistory": {
+      "FilipePereira": {
+        "FilipePereira::Pergunta provisória: revê este vídeo e substitui esta pergunta depois.": [
+          false
+        ]
+      }
+    }
+  },
+  "#8V94": {
+    "code": "#8V94",
+    "name": "DEMO DEMO",
+    "points": 0,
+    "viewedVideoIds": [
+      "InesGamboa",
+      "RafaelCarvalho",
+      "FilipePereira"
+    ],
+    "answeredQuestionIds": [
+      "FilipePereira::Pergunta provisória: revê este vídeo e substitui esta pergunta depois."
+    ],
+    "quizHistory": {
+      "FilipePereira": {
+        "FilipePereira::Pergunta provisória: revê este vídeo e substitui esta pergunta depois.": [
+          false
+        ]
+      }
+    }
+  },
+  "#UNN6": {
+    "code": "#UNN6",
+    "name": "ff",
+    "points": 0,
+    "viewedVideoIds": [
+      "RafaelCarvalho"
+    ],
+    "answeredQuestionIds": [],
+    "quizHistory": {}
   }
 }
