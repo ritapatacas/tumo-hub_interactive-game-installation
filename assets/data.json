@@ -37,7 +37,7 @@
         },
         {
           "text": "Em que momento o jogo se passa:",
-          "options": ["A - De dia", "B - À tarde", "C - De manhã", "D - À noite"],
+          "options": ["A - De dia", "B - À tarde", "C - De manhã", "D - A Noite"],
           "correctIndex": 3
         },
         {
@@ -134,14 +134,44 @@
       ]
     },
     {
+      "id": "Untitled-4",
+      "quiz": [
+        {
+          "text": "Com quanto hp o personagem começa?",
+          "options": ["A - 10", "B - 1", "C - 5", "D - 50"],
+          "correctIndex": 3
+        },
+        {
+          "text": "Qual o penteado do personagem",
+          "options": ["A - Rabo de cavalo", "B - Careca", "C - Moicano", "D - Cabelo solto"],
+          "correctIndex": 0
+        },
+        {
+          "text": "Qual o nome do Boss?",
+          "options": ["A - Lilli", "B - Dark", "C - David", "D - Feriyanda"],
+          "correctIndex": 0
+        },
+        {
+          "text": "Qual o primeiro obtáculo?",
+          "options": ["A - Serras", "B - Espinhos", "C - Pessoas", "D - Buracos"],
+          "correctIndex": 0
+        }
+      ]
+    },
+    {
       "id": "AntonioLourenco",
       "videoPath": "/assets/videos/AntonioLourenco.mp4",
       "thumbnailPath": "/assets/thumbnails/AntonioLourenco.png",
       "quiz": [
         {
-          "text": "Pergunta provisória: revê este vídeo e substitui esta pergunta depois.",
-          "options": ["A - Opção 1", "B - Opção 2", "C - Opção 3", "D - Opção 4"],
+          "text": "Qual o coletavel do jogo?",
+          "options": ["A - Chave", "B - Madeira", "C - Caveira", "D - Moedas"],
           "correctIndex": 0
+        },
+        {
+          "text": "Com quantas moedas terminou o player?",
+          "options": ["A - 21", "B - 54", "C - 32", "D - 29"],
+          "correctIndex": 3
         }
       ]
     },
@@ -151,9 +181,14 @@
       "thumbnailPath": "/assets/thumbnails/ArturLeal.png",
       "quiz": [
         {
-          "text": "Pergunta provisória: revê este vídeo e substitui esta pergunta depois.",
-          "options": ["A - Opção 1", "B - Opção 2", "C - Opção 3", "D - Opção 4"],
-          "correctIndex": 0
+          "text": "Onde termina o video?",
+          "options": ["A - num barco", "B - numa torre", "C - numa vila", "D - na lua"],
+          "correctIndex": 1
+        },
+        {
+          "text": "Com quantas moedas começou o player?",
+          "options": ["A - 20", "B - 5", "C - 0", "D - 1"],
+          "correctIndex": 2
         }
       ]
     },
@@ -163,9 +198,14 @@
       "thumbnailPath": "/assets/thumbnails/DiogoLopes.png",
       "quiz": [
         {
-          "text": "Pergunta provisória: revê este vídeo e substitui esta pergunta depois.",
-          "options": ["A - Opção 1", "B - Opção 2", "C - Opção 3", "D - Opção 4"],
+          "text": "Onde começa o player?",
+          "options": ["A - Num barco", "B - Numa praia", "C - Em alto mar", "D - Numa vila"],
           "correctIndex": 0
+        },
+        {
+          "text": "Quantos NPCs tem no barco",
+          "options": ["A - 0", "B - 1", "C - 2", "D - 3"],
+          "correctIndex": 2
         }
       ]
     },
@@ -175,8 +215,13 @@
       "thumbnailPath": "/assets/thumbnails/FilipePereira.png",
       "quiz": [
         {
-          "text": "Pergunta provisória: revê este vídeo e substitui esta pergunta depois.",
-          "options": ["A - Opção 1", "B - Opção 2", "C - Opção 3", "D - Opção 4"],
+          "text": "Qual é o obstáculo principal da segunda sala?",
+          "options": ["A - Lava", "B - Chuva ácida", "C - Serras", "D - Lançã-chamas"],
+          "correctIndex": 1
+        },
+        {
+          "text": "O quê tinha no fundo da sala final do jogo.",
+          "options": ["A - Duas Camas de casal", "B - Uma cama solteira", "C - Duas redes", "D - Uma cama de Casal"],
           "correctIndex": 0
         }
       ]
@@ -187,9 +232,14 @@
       "thumbnailPath": "/assets/thumbnails/JonasKozaka.png",
       "quiz": [
         {
-          "text": "Pergunta provisória: revê este vídeo e substitui esta pergunta depois.",
-          "options": ["A - Opção 1", "B - Opção 2", "C - Opção 3", "D - Opção 4"],
+          "text": "Onde fica o segundo baú",
+          "options": ["A - Floresta", "B - Barracas na praia", "C - Na entrada da vila", "D - No topo do grande edifćio"],
           "correctIndex": 0
+        },
+        {
+          "text": "É preciso apanhar quantas moedas para completar o jogo",
+          "options": ["A - 32", "B - 5", "C - 37", "D - 9"],
+          "correctIndex": 2
         }
       ]
     },
@@ -211,9 +261,14 @@
       "thumbnailPath": "/assets/thumbnails/MariaDias.png",
       "quiz": [
         {
-          "text": "Pergunta provisória: revê este vídeo e substitui esta pergunta depois.",
-          "options": ["A - Opção 1", "B - Opção 2", "C - Opção 3", "D - Opção 4"],
-          "correctIndex": 0
+          "text": "Onde o jogador apanha a primeira chave?",
+          "options": ["A - hotel", "B - Banco", "C - torre", "D - rua"],
+          "correctIndex": 2
+        },
+        {
+          "text": "Que obstaclo o player têm de passar após sair do rio?",
+          "options": ["A - cacto", "B - barricada", "C - bombas nucleares sovieticas", "D - guarda"],
+          "correctIndex": 1
         }
       ]
     },
@@ -223,8 +278,13 @@
       "thumbnailPath": "/assets/thumbnails/RafaelCarvalho.png",
       "quiz": [
         {
-          "text": "Pergunta provisória: revê este vídeo e substitui esta pergunta depois.",
-          "options": ["A - Opção 1", "B - Opção 2", "C - Opção 3", "D - Opção 4"],
+          "text": "Oque está perto do baú?",
+          "options": ["A - Piano", "B - Colona", "C - Quadro", "D - Reator"],
+          "correctIndex": 0
+        },
+        {
+          "text": "Como ele  ultrapassa o muro?",
+          "options": ["A - subindo escadas", "B - teletransporte ", "C - Porta", "D - Nenhuma"],
           "correctIndex": 0
         }
       ]

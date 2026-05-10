@@ -18,7 +18,7 @@ homeScreen.addText({
   letterSpacing: "0.03em",
 });
 homeScreen.addText({
-  text: "Portfólio Interativo de Jogos",
+  text: "Instalação Interativa de Jogos",
   variant: "hand",
   fontSize: "clamp(32px, 2.8vw, 42px)",
   color: "#56A0C1",

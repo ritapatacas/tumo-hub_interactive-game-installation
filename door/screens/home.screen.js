@@ -16,7 +16,7 @@ doorHomeScreen.setBackgroundImage({
 doorHomeScreen.beginShadowBox({ marginTop: 14, marginBottom: 33 });
 doorHomeScreen.addText({ text: "Comunicação sob Pressão", variant: "title" });
 doorHomeScreen.addText({
-  text: "Portfólio Interativo de Jogos",
+  text: "Instalação Interativa de Jogos",
   variant: "hand",
   fontSize: "clamp(32px, 2.8vw, 42px)",
   color: "#56A0C1",
