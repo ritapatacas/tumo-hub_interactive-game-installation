@@ -187,7 +187,7 @@ export async function createApp(mountEl, sessionConfig) {
 
   mergeDummyLeaderboardIfEnabled(state);
 
-  const res = await fetch("/assets/data.json");
+  const res = await fetch("/data.json");
   if (res.ok) {
     const raw = await res.json();
     const entries = Array.isArray(raw?.videos)

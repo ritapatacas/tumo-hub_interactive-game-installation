@@ -930,5 +930,42 @@
     ],
     "answeredQuestionIds": [],
     "quizHistory": {}
+  },
+  "#NSME": {
+    "code": "#NSME",
+    "name": "test",
+    "points": 0,
+    "viewedVideoIds": [
+      "AntonioLourenco",
+      "InesGamboa"
+    ],
+    "answeredQuestionIds": [
+      "InesGamboa::O que está em cima do tesouro?"
+    ],
+    "quizHistory": {
+      "InesGamboa": {
+        "InesGamboa::O que está em cima do tesouro?": [
+          false
+        ]
+      }
+    }
+  },
+  "#WLSX": {
+    "code": "#WLSX",
+    "name": "noobs",
+    "points": 0,
+    "viewedVideoIds": [
+      "FilipePereira"
+    ],
+    "answeredQuestionIds": [
+      "FilipePereira::Qual é o obstáculo principal da segunda sala?"
+    ],
+    "quizHistory": {
+      "FilipePereira": {
+        "FilipePereira::Qual é o obstáculo principal da segunda sala?": [
+          false
+        ]
+      }
+    }
   }
 }

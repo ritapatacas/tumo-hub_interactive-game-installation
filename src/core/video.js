@@ -52,26 +52,3 @@ export function showSelectedVideo(ctx, opts = {}) {
     });
   }
 }
-
-export function createVideoPlayer(domRoot) {
-  const video = document.createElement('video');
-  video.className = 'tumo-video';
-  domRoot.appendChild(video);
-
-  function show({ src, autoplay = true, controls = true } = {}) {
-    if (src) video.src = src;
-    video.controls = !!controls;
-    video.style.display = 'block';
-    if (autoplay) {
-      const p = video.play();
-      if (p && typeof p.catch === "function") p.catch(() => {});
-    }
-  }
-
-  function hide() {
-    video.pause();
-    video.style.display = 'none';
-  }
-
-  return { show, hide, el: video };
-}

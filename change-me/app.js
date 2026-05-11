@@ -52,8 +52,6 @@ export const actions = {
     ctx.goTo("gallery");
   },
   goQuiz: (ctx) => startQuietThenQuiz(ctx),
-  goQuizNow: ({ goTo }) => goTo("quiz"),
-  goVideo: ({ goTo }) => goTo("video"),
   goLeaderboard: ({ goTo }) => goTo("leaderboard"),
   videoEndedAdvance: ({ actions: a, ...ctx }) => a.goQuiz(ctx),
   advanceFromAttention: (ctx) => advanceFromAttentionToVideo(ctx),
@@ -67,28 +65,4 @@ export const actions = {
   openVideoFromGallery: (ctx) => openVideoFromGalleryWithPayload(ctx),
   loadSpotlightVideoFromGallery: (ctx) => loadSpotlightVideoFromGallery(ctx),
   openSelectedVideo: (ctx) => openSelectedVideo(ctx),
-  templateQuizAnswer: (ctx) => {
-    const payload = ctx.payload ?? {};
-    if (payload.isCorrect) {
-      ctx.ui.showMessage("", {
-        dock: "top-left",
-        boxClassName: "ui-shadow-box--docked-success",
-        duration: 4500,
-        ariaLabel: "Resposta certa.",
-        html: "RESPOSTA CERTA!",
-      });
-    } else {
-      ctx.ui.showMessage("", {
-        dock: "top-left",
-        boxClassName: "ui-shadow-box--docked-error",
-        duration: 4500,
-        ariaLabel: "Resposta errada.",
-        html: "RESPOSTA ERRADA!",
-      });
-    }
-  },
-  templateInputSubmit: (ctx) => {
-    const value = ctx.ui.getInputValue("templateInput");
-    console.info(value ? `Enviado: ${value}` : "Escreve algo primeiro.");
-  },
 };

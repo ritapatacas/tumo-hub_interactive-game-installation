@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { WebSocketServer } from "ws";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const TEAMS_FILE = path.join(__dirname, "teams.json");
+const TEAMS_FILE = path.join(__dirname, "../public/teams.json");
 const port = Number(process.env.SYNC_PORT || 8787);
 const sessions = new Map();
 const server = createServer(handleRequest);
